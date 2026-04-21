@@ -237,6 +237,10 @@ def main():
 
     for name, generator, count in scenarios:
         accounts = generator(count)
+        # Inject random coordinates within Kenya bounds for all accounts
+        for acc in accounts:
+            acc["latitude"] = round(random.uniform(-4.5, 4.5), 6)
+            acc["longitude"] = round(random.uniform(34.0, 41.0), 6)
         all_accounts.extend(accounts)
         print(f"\n  ✅ {name}: {len(accounts)} accounts generated")
 
@@ -258,6 +262,8 @@ def main():
             token_frequency=account["token_frequency"],
             total_kwh=account["total_kwh"],
             peak_load_kw=account["peak_load_kw"],
+            latitude=account.get("latitude"),
+            longitude=account.get("longitude"),
         )
 
         # Persist to database
@@ -395,6 +401,8 @@ def main():
                     "total_kwh": r.total_kwh,
                     "peak_load_kw": r.peak_load_kw,
                     "has_load_spike": r.has_load_spike,
+                    "latitude": account.get("latitude"),
+                    "longitude": account.get("longitude"),
                 },
             }
             for r in results
