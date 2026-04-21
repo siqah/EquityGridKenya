@@ -1,0 +1,2120 @@
+{
+  "total_processed": 100,
+  "summary": {
+    "GREEN": 42,
+    "YELLOW": 38,
+    "RED": 20
+  },
+  "results": [
+    {
+      "account_id_hash": "86cb26ab6d2c732fe2a04e72e3a0e1b92f8291c88d387bdd8577d99707d35a8d",
+      "county": "Tana River",
+      "poverty_index": 72.9,
+      "equity_score": 83.39,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 72.9,
+        "token_score": 81.58,
+        "consumption_score": 99.2
+      },
+      "inputs": {
+        "token_avg_amount": 35.57,
+        "token_frequency": 19,
+        "total_kwh": 13.4,
+        "peak_load_kw": 0.38,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "22127680eaa1d97060ef46b3d52df0e22bf1c03e142841381cf725459886d753",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 91.27,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 88.17,
+        "consumption_score": 99.41
+      },
+      "inputs": {
+        "token_avg_amount": 63.83,
+        "token_frequency": 23,
+        "total_kwh": 9.9,
+        "peak_load_kw": 0.75,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "6fa5394112bcc22ea7de0d2affa06c1ccccad0bc279ed331e253e884899ab0bb",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 88.63,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 79.91,
+        "consumption_score": 98.85
+      },
+      "inputs": {
+        "token_avg_amount": 34.68,
+        "token_frequency": 18,
+        "total_kwh": 19.1,
+        "peak_load_kw": 0.23,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "71bd7c481fd2527d162104a312dd5afb7e7be85061fdaa25258003270668d975",
+      "county": "Mandera",
+      "poverty_index": 85.8,
+      "equity_score": 90.46,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 85.8,
+        "token_score": 88.17,
+        "consumption_score": 98.97
+      },
+      "inputs": {
+        "token_avg_amount": 65.8,
+        "token_frequency": 23,
+        "total_kwh": 17.2,
+        "peak_load_kw": 0.78,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "4b66510a7e86ada9ce696f1315cd33e8e2ab23f05cdc84cb1c84bc2dfaf55f60",
+      "county": "Samburu",
+      "poverty_index": 75.6,
+      "equity_score": 82.24,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 75.6,
+        "token_score": 74.82,
+        "consumption_score": 98.52
+      },
+      "inputs": {
+        "token_avg_amount": 70.47,
+        "token_frequency": 15,
+        "total_kwh": 24.7,
+        "peak_load_kw": 0.41,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "675e9b2b19d0c9c4e7f4dc4bd9cd772a29e81e8ee8dcfe7ba831c3dd3fdf9157",
+      "county": "Wajir",
+      "poverty_index": 84.2,
+      "equity_score": 86.92,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 84.2,
+        "token_score": 78.22,
+        "consumption_score": 99.24
+      },
+      "inputs": {
+        "token_avg_amount": 47.01,
+        "token_frequency": 17,
+        "total_kwh": 12.7,
+        "peak_load_kw": 1.19,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "7e62d6f363cb9e9fff3630308d7d3460560a8696be12a1b09e97b6064b82df25",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 87.69,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 76.58,
+        "consumption_score": 99.05
+      },
+      "inputs": {
+        "token_avg_amount": 34.64,
+        "token_frequency": 16,
+        "total_kwh": 15.9,
+        "peak_load_kw": 0.65,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "08c4f49553922bb671ce30981eb66f0efe3077881d44d788edf8527179bfb6bb",
+      "county": "Samburu",
+      "poverty_index": 75.6,
+      "equity_score": 85.83,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 75.6,
+        "token_score": 86.49,
+        "consumption_score": 98.81
+      },
+      "inputs": {
+        "token_avg_amount": 70.36,
+        "token_frequency": 22,
+        "total_kwh": 19.8,
+        "peak_load_kw": 1.47,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "9c4415b38e4f57bdfb64567ed54b7a550810dc2177517fc44717dece20157d34",
+      "county": "Wajir",
+      "poverty_index": 84.2,
+      "equity_score": 87.68,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 84.2,
+        "token_score": 81.58,
+        "consumption_score": 98.43
+      },
+      "inputs": {
+        "token_avg_amount": 33.94,
+        "token_frequency": 19,
+        "total_kwh": 26.2,
+        "peak_load_kw": 1.0,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "b5c2f80a1da60ce76bffd4fea66151cee9fe404a5211f7ab31fc4782ef450b14",
+      "county": "Garissa",
+      "poverty_index": 70.3,
+      "equity_score": 81.66,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 70.3,
+        "token_score": 79.88,
+        "consumption_score": 98.59
+      },
+      "inputs": {
+        "token_avg_amount": 48.08,
+        "token_frequency": 18,
+        "total_kwh": 23.5,
+        "peak_load_kw": 0.26,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "75ec8ada40cdf66f7108ed940c33135330ddd045a8fa041ce68381ef7bf45535",
+      "county": "Mandera",
+      "poverty_index": 85.8,
+      "equity_score": 86.79,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 85.8,
+        "token_score": 76.5,
+        "consumption_score": 98.39
+      },
+      "inputs": {
+        "token_avg_amount": 68.65,
+        "token_frequency": 16,
+        "total_kwh": 26.8,
+        "peak_load_kw": 1.33,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "890f7d693dc5cc6a057255b5cd24699c4f514e0fffbb7ff5d496721bc20b54be",
+      "county": "Wajir",
+      "poverty_index": 84.2,
+      "equity_score": 90.67,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 84.2,
+        "token_score": 91.56,
+        "consumption_score": 98.42
+      },
+      "inputs": {
+        "token_avg_amount": 43.9,
+        "token_frequency": 25,
+        "total_kwh": 26.4,
+        "peak_load_kw": 0.41,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "ea62838fd04912fd332f43884a5b29fd625e2ad9d1007cc3e154099cc458faef",
+      "county": "Samburu",
+      "poverty_index": 75.6,
+      "equity_score": 84.29,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 75.6,
+        "token_score": 81.57,
+        "consumption_score": 98.6
+      },
+      "inputs": {
+        "token_avg_amount": 40.48,
+        "token_frequency": 19,
+        "total_kwh": 23.4,
+        "peak_load_kw": 1.09,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "3bf9bafd1965ae461a6e761d84454afb588995214da87b2de0a5f5398c3810d6",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 88.1,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 78.18,
+        "consumption_score": 98.81
+      },
+      "inputs": {
+        "token_avg_amount": 60.46,
+        "token_frequency": 17,
+        "total_kwh": 19.8,
+        "peak_load_kw": 0.52,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "b139f3939fff1b7d52f4ed1df69f36cce477c03a043aca4b5c9ca9c3679473d4",
+      "county": "Wajir",
+      "poverty_index": 84.2,
+      "equity_score": 90.73,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 84.2,
+        "token_score": 91.54,
+        "consumption_score": 98.61
+      },
+      "inputs": {
+        "token_avg_amount": 48.97,
+        "token_frequency": 25,
+        "total_kwh": 23.1,
+        "peak_load_kw": 0.49,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "3d3d6ada1e3a5e890c20d16c895627d62bf8b3ad46fd0fe9e5cd7e813eadfcdb",
+      "county": "Samburu",
+      "poverty_index": 75.6,
+      "equity_score": 82.45,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 75.6,
+        "token_score": 74.82,
+        "consumption_score": 99.22
+      },
+      "inputs": {
+        "token_avg_amount": 72.14,
+        "token_frequency": 15,
+        "total_kwh": 13.0,
+        "peak_load_kw": 0.24,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "9f9549326f017ec96306917879f89ef6110c9bc43d39e5609a63c9ddf087961c",
+      "county": "Samburu",
+      "poverty_index": 75.6,
+      "equity_score": 82.98,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 75.6,
+        "token_score": 76.54,
+        "consumption_score": 99.24
+      },
+      "inputs": {
+        "token_avg_amount": 50.06,
+        "token_frequency": 16,
+        "total_kwh": 12.6,
+        "peak_load_kw": 1.43,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "38ec58144bcf3c7c09c1e6bdbfc5354115c5bd69e54cde6b136c67bb310475ac",
+      "county": "Tana River",
+      "poverty_index": 72.9,
+      "equity_score": 86.28,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 72.9,
+        "token_score": 91.55,
+        "consumption_score": 98.86
+      },
+      "inputs": {
+        "token_avg_amount": 45.73,
+        "token_frequency": 25,
+        "total_kwh": 19.0,
+        "peak_load_kw": 1.35,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "de7bf29c1ed14985551f76e8f6420709255f715f2a1396dd437dae812070f6f6",
+      "county": "Tana River",
+      "poverty_index": 72.9,
+      "equity_score": 83.42,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 72.9,
+        "token_score": 81.53,
+        "consumption_score": 99.33
+      },
+      "inputs": {
+        "token_avg_amount": 52.94,
+        "token_frequency": 19,
+        "total_kwh": 11.1,
+        "peak_load_kw": 1.17,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "954bed29c6b11ea635f696d58eb6cacd8f74c721bcced3032272c3e880d69b4a",
+      "county": "Marsabit",
+      "poverty_index": 76.1,
+      "equity_score": 87.09,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 76.1,
+        "token_score": 89.89,
+        "consumption_score": 98.96
+      },
+      "inputs": {
+        "token_avg_amount": 43.14,
+        "token_frequency": 24,
+        "total_kwh": 17.4,
+        "peak_load_kw": 0.96,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "1dec1172cf8d6cad5911067fbcb6b1fedaf8f685bdc6a649f038eee14eeb543f",
+      "county": "Samburu",
+      "poverty_index": 75.6,
+      "equity_score": 83.36,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 75.6,
+        "token_score": 78.23,
+        "consumption_score": 98.85
+      },
+      "inputs": {
+        "token_avg_amount": 40.97,
+        "token_frequency": 17,
+        "total_kwh": 19.2,
+        "peak_load_kw": 0.32,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "e50ef7c108296bd8d7bb1106fef111432bbff70a951bc885d2de666a596af011",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 88.05,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 78.15,
+        "consumption_score": 98.69
+      },
+      "inputs": {
+        "token_avg_amount": 73.06,
+        "token_frequency": 17,
+        "total_kwh": 21.8,
+        "peak_load_kw": 1.23,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "8c2835f1149faaa6e2beb694b76e2a213aef2de3d3e143201158b279270de822",
+      "county": "Wajir",
+      "poverty_index": 84.2,
+      "equity_score": 88.84,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 84.2,
+        "token_score": 84.85,
+        "consumption_score": 99.02
+      },
+      "inputs": {
+        "token_avg_amount": 59.82,
+        "token_frequency": 21,
+        "total_kwh": 16.4,
+        "peak_load_kw": 1.49,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "313af10c15f1c5e31b140c233a9186121d3143633f538ea9c1c2f3d39cb2d300",
+      "county": "Marsabit",
+      "poverty_index": 76.1,
+      "equity_score": 86.42,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 76.1,
+        "token_score": 88.23,
+        "consumption_score": 98.39
+      },
+      "inputs": {
+        "token_avg_amount": 42.57,
+        "token_frequency": 23,
+        "total_kwh": 26.9,
+        "peak_load_kw": 0.21,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "ab7acdd9ec9bda7add288cda825f550eabf76513ab13e3ab9e0265d8799edec3",
+      "county": "Tana River",
+      "poverty_index": 72.9,
+      "equity_score": 85.19,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 72.9,
+        "token_score": 88.24,
+        "consumption_score": 98.53
+      },
+      "inputs": {
+        "token_avg_amount": 35.73,
+        "token_frequency": 23,
+        "total_kwh": 24.5,
+        "peak_load_kw": 1.2,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "094e2569f5b707ac8976cb4575a642358729801302fedb1b3dce36f1784d1eb0",
+      "county": "Samburu",
+      "poverty_index": 75.6,
+      "equity_score": 85.51,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 75.6,
+        "token_score": 84.91,
+        "consumption_score": 99.31
+      },
+      "inputs": {
+        "token_avg_amount": 35.58,
+        "token_frequency": 21,
+        "total_kwh": 11.5,
+        "peak_load_kw": 0.2,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "452f190ff9b6d9d6bf8cf581c238645541a95a8917a4e0597ef077ee44bb47ce",
+      "county": "Tana River",
+      "poverty_index": 72.9,
+      "equity_score": 83.08,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 72.9,
+        "token_score": 81.48,
+        "consumption_score": 98.24
+      },
+      "inputs": {
+        "token_avg_amount": 73.79,
+        "token_frequency": 19,
+        "total_kwh": 29.4,
+        "peak_load_kw": 1.19,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "55effddb90573416cc99007de0e3e98ac06012488739c7cb792374859a81677c",
+      "county": "Marsabit",
+      "poverty_index": 76.1,
+      "equity_score": 87.62,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 76.1,
+        "token_score": 91.48,
+        "consumption_score": 99.12
+      },
+      "inputs": {
+        "token_avg_amount": 75.63,
+        "token_frequency": 25,
+        "total_kwh": 14.6,
+        "peak_load_kw": 1.03,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "c4c4267fe60bc5884e59ee02d1246bb4725a74f56668adb0c7f394e4553f4f3e",
+      "county": "Marsabit",
+      "poverty_index": 76.1,
+      "equity_score": 84.96,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 76.1,
+        "token_score": 83.23,
+        "consumption_score": 98.51
+      },
+      "inputs": {
+        "token_avg_amount": 39.95,
+        "token_frequency": 20,
+        "total_kwh": 24.8,
+        "peak_load_kw": 0.9,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "2b127186c2e6e145d0ad8fb48fbbb286dfb05888083d5679692b588cfbb4090a",
+      "county": "Garissa",
+      "poverty_index": 70.3,
+      "equity_score": 80.18,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 70.3,
+        "token_score": 74.81,
+        "consumption_score": 98.73
+      },
+      "inputs": {
+        "token_avg_amount": 76.12,
+        "token_frequency": 15,
+        "total_kwh": 21.2,
+        "peak_load_kw": 0.84,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "d7e5d13edb51877e3ee0a61bcf485fde7dd7ec0f02c63e8667953f90b7a7bfeb",
+      "county": "Busia",
+      "poverty_index": 58.3,
+      "equity_score": 71.08,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 58.3,
+        "token_score": 65.47,
+        "consumption_score": 93.73
+      },
+      "inputs": {
+        "token_avg_amount": 478.73,
+        "token_frequency": 10,
+        "total_kwh": 104.5,
+        "peak_load_kw": 1.6,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "a06f512f6d3e310dacc196854b883cad989c3cd44c48183c8ca271e588493272",
+      "county": "Kwale",
+      "poverty_index": 60.7,
+      "equity_score": 70.09,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 60.7,
+        "token_score": 55.51,
+        "consumption_score": 97.19
+      },
+      "inputs": {
+        "token_avg_amount": 463.4,
+        "token_frequency": 4,
+        "total_kwh": 46.9,
+        "peak_load_kw": 2.21,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "79ef14cac34abf302b4c51cc4f7082875804362f3081ca2c2b3ab37f310d1c45",
+      "county": "Busia",
+      "poverty_index": 58.3,
+      "equity_score": 70.13,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 58.3,
+        "token_score": 62.1,
+        "consumption_score": 93.92
+      },
+      "inputs": {
+        "token_avg_amount": 493.4,
+        "token_frequency": 8,
+        "total_kwh": 101.3,
+        "peak_load_kw": 1.32,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "54226e10691bd9cfa15770aa5c432022f74ffa4fa529750ae5074b81c2f53937",
+      "county": "Homa Bay",
+      "poverty_index": 48.4,
+      "equity_score": 65.4,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 48.4,
+        "token_score": 57.12,
+        "consumption_score": 96.33
+      },
+      "inputs": {
+        "token_avg_amount": 484.05,
+        "token_frequency": 5,
+        "total_kwh": 61.2,
+        "peak_load_kw": 3.18,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "d5127a562dfac96bdd3cb884a678adbe11162d91dad5ad4d31a7f78dfc974202",
+      "county": "Migori",
+      "poverty_index": 46.9,
+      "equity_score": 65.59,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 46.9,
+        "token_score": 62.11,
+        "consumption_score": 93.98
+      },
+      "inputs": {
+        "token_avg_amount": 489.31,
+        "token_frequency": 8,
+        "total_kwh": 100.4,
+        "peak_load_kw": 2.72,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "a565e80b52a1d079fbb80dea7a500054809462b3e4abd1481bd054f6bed46a25",
+      "county": "Kakamega",
+      "poverty_index": 49.8,
+      "equity_score": 67.52,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 49.8,
+        "token_score": 64.2,
+        "consumption_score": 94.48
+      },
+      "inputs": {
+        "token_avg_amount": 319.7,
+        "token_frequency": 9,
+        "total_kwh": 92.0,
+        "peak_load_kw": 2.1,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "262e1f8fd891175f4f9a01e07f68b345d572a155d594f602fbf58df6a58a4e78",
+      "county": "Homa Bay",
+      "poverty_index": 48.4,
+      "equity_score": 65.87,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 48.4,
+        "token_score": 57.74,
+        "consumption_score": 97.29
+      },
+      "inputs": {
+        "token_avg_amount": 236.3,
+        "token_frequency": 5,
+        "total_kwh": 45.1,
+        "peak_load_kw": 1.05,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "e0a0e7d57d7bb7f4083bff5f9e295f55b5c02b2ec519ab89c08e6a4bb1a3ccfa",
+      "county": "Kwale",
+      "poverty_index": 60.7,
+      "equity_score": 70.18,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 60.7,
+        "token_score": 55.73,
+        "consumption_score": 97.26
+      },
+      "inputs": {
+        "token_avg_amount": 376.53,
+        "token_frequency": 4,
+        "total_kwh": 45.7,
+        "peak_load_kw": 2.58,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "a12d7f6efd839a91dd3019351729137577ab4c57e4ab3c9d30a3e13bffc5e38c",
+      "county": "Kwale",
+      "poverty_index": 60.7,
+      "equity_score": 69.16,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 60.7,
+        "token_score": 56.12,
+        "consumption_score": 93.47
+      },
+      "inputs": {
+        "token_avg_amount": 220.22,
+        "token_frequency": 4,
+        "total_kwh": 108.8,
+        "peak_load_kw": 1.18,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "ec5d8bc1f34551f81007b2789bcb65d107d7fc1c097299466c2bed338c95be5e",
+      "county": "Kwale",
+      "poverty_index": 60.7,
+      "equity_score": 71.54,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 60.7,
+        "token_score": 60.96,
+        "consumption_score": 96.57
+      },
+      "inputs": {
+        "token_avg_amount": 283.54,
+        "token_frequency": 7,
+        "total_kwh": 57.1,
+        "peak_load_kw": 1.33,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "6937f18f19ada877b4eed1105ce205a0db52ac25d0870bf37d70dc089ed02519",
+      "county": "Homa Bay",
+      "poverty_index": 48.4,
+      "equity_score": 65.77,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 48.4,
+        "token_score": 60.98,
+        "consumption_score": 93.72
+      },
+      "inputs": {
+        "token_avg_amount": 272.9,
+        "token_frequency": 7,
+        "total_kwh": 104.6,
+        "peak_load_kw": 1.48,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "570c28671d3e67b726c12300789b4fab9bfac5cf00fcaad8df498d7ade6058fc",
+      "county": "Busia",
+      "poverty_index": 58.3,
+      "equity_score": 69.69,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 58.3,
+        "token_score": 59.01,
+        "consumption_score": 95.57
+      },
+      "inputs": {
+        "token_avg_amount": 397.69,
+        "token_frequency": 6,
+        "total_kwh": 73.9,
+        "peak_load_kw": 2.17,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "65f3641e382a01ec6662979d3330be99194f5eddf10aa1df37d55126fbe74aff",
+      "county": "Kilifi",
+      "poverty_index": 62.1,
+      "equity_score": 73.18,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 62.1,
+        "token_score": 63.99,
+        "consumption_score": 97.13
+      },
+      "inputs": {
+        "token_avg_amount": 402.01,
+        "token_frequency": 9,
+        "total_kwh": 47.9,
+        "peak_load_kw": 2.01,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "9f34b5d28d0d9113bb9089912a245f4fcdb816311e93cf6329e493727a2dd0bf",
+      "county": "Siaya",
+      "poverty_index": 47.6,
+      "equity_score": 64.63,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 47.6,
+        "token_score": 55.57,
+        "consumption_score": 96.41
+      },
+      "inputs": {
+        "token_avg_amount": 440.18,
+        "token_frequency": 4,
+        "total_kwh": 59.9,
+        "peak_load_kw": 1.48,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "b92e00628febdedaef5144f6d0a1df4a8956f9490b9f45fd02995fed39564857",
+      "county": "Homa Bay",
+      "poverty_index": 48.4,
+      "equity_score": 65.56,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 48.4,
+        "token_score": 57.73,
+        "consumption_score": 96.26
+      },
+      "inputs": {
+        "token_avg_amount": 242.05,
+        "token_frequency": 5,
+        "total_kwh": 62.3,
+        "peak_load_kw": 1.62,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "98f387bd622e92a38bea9acc46e47165562d1ce8d454ea4b97ca837e3ce64fe6",
+      "county": "Busia",
+      "poverty_index": 58.3,
+      "equity_score": 71.12,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 58.3,
+        "token_score": 65.83,
+        "consumption_score": 93.49
+      },
+      "inputs": {
+        "token_avg_amount": 332.94,
+        "token_frequency": 10,
+        "total_kwh": 108.5,
+        "peak_load_kw": 1.24,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "6a07ec827c6bbaf1e012b0c0be7818cbfe3203736b879116053641434c5be786",
+      "county": "Kilifi",
+      "poverty_index": 62.1,
+      "equity_score": 72.53,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 62.1,
+        "token_score": 65.44,
+        "consumption_score": 93.53
+      },
+      "inputs": {
+        "token_avg_amount": 490.7,
+        "token_frequency": 10,
+        "total_kwh": 107.9,
+        "peak_load_kw": 1.42,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "77feffc8a85a1199e59e640393469724a5db1f5781029bcfbe6505d47fbdd46b",
+      "county": "Homa Bay",
+      "poverty_index": 48.4,
+      "equity_score": 67.8,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 48.4,
+        "token_score": 65.81,
+        "consumption_score": 95.67
+      },
+      "inputs": {
+        "token_avg_amount": 344.41,
+        "token_frequency": 10,
+        "total_kwh": 72.1,
+        "peak_load_kw": 1.15,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "39d98c63bf01cde733bb232ff6d56b5b6a257abb2fe90129ad6b4fd38d3dbd67",
+      "county": "Migori",
+      "poverty_index": 46.9,
+      "equity_score": 66.01,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 46.9,
+        "token_score": 61.17,
+        "consumption_score": 96.33
+      },
+      "inputs": {
+        "token_avg_amount": 200.65,
+        "token_frequency": 7,
+        "total_kwh": 61.2,
+        "peak_load_kw": 2.96,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "2308f9ac6b2ccc644ad73c3afe73a78133a603d35943dcd3c9164b523cb386e4",
+      "county": "Homa Bay",
+      "poverty_index": 48.4,
+      "equity_score": 66.55,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 48.4,
+        "token_score": 64.29,
+        "consumption_score": 93.0
+      },
+      "inputs": {
+        "token_avg_amount": 285.57,
+        "token_frequency": 9,
+        "total_kwh": 116.6,
+        "peak_load_kw": 3.49,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "bb85f24a7b2fff3360e0cd7f1f764fd3bf4c14dbb27156a20b0138b26a0b3a5d",
+      "county": "Homa Bay",
+      "poverty_index": 48.4,
+      "equity_score": 66.14,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 48.4,
+        "token_score": 59.38,
+        "consumption_score": 96.56
+      },
+      "inputs": {
+        "token_avg_amount": 246.44,
+        "token_frequency": 6,
+        "total_kwh": 57.4,
+        "peak_load_kw": 1.15,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "147e1263e1fd8d2e7f53badaa229f9b9fb51518fc9119e010b3039581941748c",
+      "county": "Kilifi",
+      "poverty_index": 62.1,
+      "equity_score": 70.73,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 62.1,
+        "token_score": 55.61,
+        "consumption_score": 97.36
+      },
+      "inputs": {
+        "token_avg_amount": 424.39,
+        "token_frequency": 4,
+        "total_kwh": 44.0,
+        "peak_load_kw": 2.19,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "eba23a10234f22db6175024d21bca3472cc2cac5793c4a4c6a64a68bed80297f",
+      "county": "Kisumu",
+      "poverty_index": 45.2,
+      "equity_score": 66.08,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 45.2,
+        "token_score": 62.79,
+        "consumption_score": 97.22
+      },
+      "inputs": {
+        "token_avg_amount": 217.06,
+        "token_frequency": 8,
+        "total_kwh": 46.4,
+        "peak_load_kw": 1.46,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "1e955b542e2f4fba2430d7b298deedf5a69d4c972991f07dfbf70d5517682707",
+      "county": "Busia",
+      "poverty_index": 58.3,
+      "equity_score": 69.22,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 58.3,
+        "token_score": 57.33,
+        "consumption_score": 95.66
+      },
+      "inputs": {
+        "token_avg_amount": 402.56,
+        "token_frequency": 5,
+        "total_kwh": 72.3,
+        "peak_load_kw": 3.35,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "8eecc32df99d5e5682bca5b1cd52f3afaf378bc3f5773510452a5494635c99a4",
+      "county": "Kwale",
+      "poverty_index": 60.7,
+      "equity_score": 69.39,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 60.7,
+        "token_score": 55.73,
+        "consumption_score": 94.62
+      },
+      "inputs": {
+        "token_avg_amount": 373.68,
+        "token_frequency": 4,
+        "total_kwh": 89.6,
+        "peak_load_kw": 2.05,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "b9ebda1930a688a3878da2b5c09470b46a3049fbcee4a24c6a4bc9be14b164c5",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 51.72,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 46.16,
+        "consumption_score": 87.97
+      },
+      "inputs": {
+        "token_avg_amount": 2869.41,
+        "token_frequency": 2,
+        "total_kwh": 200.5,
+        "peak_load_kw": 2.79,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "843fb4fc6132e491cbe836ee9466fee5e5d39db51d4e4e87081f17e7a1f6d6dd",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 53.59,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 52.19,
+        "consumption_score": 88.19
+      },
+      "inputs": {
+        "token_avg_amount": 1791.57,
+        "token_frequency": 4,
+        "total_kwh": 196.8,
+        "peak_load_kw": 3.14,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "845ec1dd92809885d54f7b874f541c375b6502d837d48f443eb9712de30d8c25",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 48.42,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 54.12,
+        "consumption_score": 85.01
+      },
+      "inputs": {
+        "token_avg_amount": 1018.63,
+        "token_frequency": 4,
+        "total_kwh": 249.8,
+        "peak_load_kw": 4.49,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "a3bf74346dbf20470b875de841a257f9a5356d916279e25bc6ccd50655fc2495",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 49.61,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 51.48,
+        "consumption_score": 91.61
+      },
+      "inputs": {
+        "token_avg_amount": 2075.27,
+        "token_frequency": 4,
+        "total_kwh": 139.8,
+        "peak_load_kw": 4.33,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "4ea1edbfd9309da21ebc314241abd01a5378fbba879dff94ffb922b99df4c194",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 48.54,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 48.1,
+        "consumption_score": 91.44
+      },
+      "inputs": {
+        "token_avg_amount": 2758.54,
+        "token_frequency": 3,
+        "total_kwh": 142.7,
+        "peak_load_kw": 3.1,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "5e95b4097aef321b176d0dbdf92383617ba9a83eccab82f85b319d07cff66c73",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 53.59,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 51.11,
+        "consumption_score": 89.24
+      },
+      "inputs": {
+        "token_avg_amount": 2223.36,
+        "token_frequency": 4,
+        "total_kwh": 179.3,
+        "peak_load_kw": 3.67,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "90bc6959701d170a22dcbb09935bc3a8f62e026ecec766d60d4e6f6abebb7e33",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 51.0,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 46.17,
+        "consumption_score": 85.55
+      },
+      "inputs": {
+        "token_avg_amount": 2863.51,
+        "token_frequency": 2,
+        "total_kwh": 240.8,
+        "peak_load_kw": 2.34,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "3f49eaceb31be6b24fc4bdc04fd649723e74eef812e776e4d05dd80d9abc169a",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 48.3,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 49.72,
+        "consumption_score": 89.02
+      },
+      "inputs": {
+        "token_avg_amount": 2779.43,
+        "token_frequency": 4,
+        "total_kwh": 183.0,
+        "peak_load_kw": 2.68,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "da46104706d7f7cd2c31be839764b59efbce5e545cdc7df724adbeb614add2cc",
+      "county": "Mombasa",
+      "poverty_index": 33.4,
+      "equity_score": 53.88,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 33.4,
+        "token_score": 47.25,
+        "consumption_score": 87.81
+      },
+      "inputs": {
+        "token_avg_amount": 2435.22,
+        "token_frequency": 2,
+        "total_kwh": 203.1,
+        "peak_load_kw": 4.13,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "9afc4de115769ef381301db04a7695722f5cfe3772d302407d3d103d33ed5157",
+      "county": "Kisumu",
+      "poverty_index": 45.2,
+      "equity_score": 60.9,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 45.2,
+        "token_score": 49.58,
+        "consumption_score": 93.17
+      },
+      "inputs": {
+        "token_avg_amount": 1502.24,
+        "token_frequency": 2,
+        "total_kwh": 113.8,
+        "peak_load_kw": 3.06,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "a0498b5a4813b6c9d304851e201ebb27ffd2ba7319197918d5954b19dd328bcc",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 53.28,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 52.28,
+        "consumption_score": 87.06
+      },
+      "inputs": {
+        "token_avg_amount": 1088.17,
+        "token_frequency": 3,
+        "total_kwh": 215.7,
+        "peak_load_kw": 3.59,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "a860a36d948ace23411aa2fb2c3de0e7d5611b0c51d8d22830a87b2c7aa1f1ce",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 53.7,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 51.69,
+        "consumption_score": 89.03
+      },
+      "inputs": {
+        "token_avg_amount": 1323.16,
+        "token_frequency": 3,
+        "total_kwh": 182.8,
+        "peak_load_kw": 3.07,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "7bceafb1906881e566a94a54bc3adceb99c53f7314fc92bfe8bc67efb2c73363",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 48.52,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 53.61,
+        "consumption_score": 85.86
+      },
+      "inputs": {
+        "token_avg_amount": 1223.75,
+        "token_frequency": 4,
+        "total_kwh": 235.6,
+        "peak_load_kw": 3.36,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "d80a05ea7060e251f62f8e0ee5897d1a8d1196bd9dc30b50a10d615b64b378b7",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 52.9,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 47.92,
+        "consumption_score": 90.13
+      },
+      "inputs": {
+        "token_avg_amount": 2165.02,
+        "token_frequency": 2,
+        "total_kwh": 164.5,
+        "peak_load_kw": 2.1,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "c9aa109f2c42943745944a12ca1dc1f4c47ad55ff830867fe31dcc640deced0d",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 51.16,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 46.34,
+        "consumption_score": 85.91
+      },
+      "inputs": {
+        "token_avg_amount": 2797.96,
+        "token_frequency": 2,
+        "total_kwh": 234.8,
+        "peak_load_kw": 2.53,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "fc646aea2321760387e6b35bd7cf131cf287be77ad04aceb28b9075caed596c2",
+      "county": "Mombasa",
+      "poverty_index": 33.4,
+      "equity_score": 54.2,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 33.4,
+        "token_score": 49.17,
+        "consumption_score": 86.98
+      },
+      "inputs": {
+        "token_avg_amount": 2333.87,
+        "token_frequency": 3,
+        "total_kwh": 217.0,
+        "peak_load_kw": 4.21,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "8d558a628042c3544480efb21d65bb8ccc87e4c1513b87031e20f25a277177f8",
+      "county": "Kisumu",
+      "poverty_index": 45.2,
+      "equity_score": 60.65,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 45.2,
+        "token_score": 49.3,
+        "consumption_score": 92.61
+      },
+      "inputs": {
+        "token_avg_amount": 2947.67,
+        "token_frequency": 4,
+        "total_kwh": 123.2,
+        "peak_load_kw": 4.32,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "ec26145722119a772f7aa682581ea203bedf4ca779abfd1c9f6ee3bc03f67636",
+      "county": "Mombasa",
+      "poverty_index": 33.4,
+      "equity_score": 52.97,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 33.4,
+        "token_score": 45.95,
+        "consumption_score": 86.07
+      },
+      "inputs": {
+        "token_avg_amount": 2952.41,
+        "token_frequency": 2,
+        "total_kwh": 232.2,
+        "peak_load_kw": 2.06,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "16ea49e030b124911810e2b243fe398b222c41586c9d8bc165141215ef826aac",
+      "county": "Nakuru",
+      "poverty_index": 28.7,
+      "equity_score": 52.09,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 28.7,
+        "token_score": 48.59,
+        "consumption_score": 86.78
+      },
+      "inputs": {
+        "token_avg_amount": 2564.77,
+        "token_frequency": 3,
+        "total_kwh": 220.3,
+        "peak_load_kw": 4.16,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "f62c18ec958cd12dfecaaaafb02c44572bcb1d388e443911b7d4be791fac62eb",
+      "county": "Mombasa",
+      "poverty_index": 33.4,
+      "equity_score": 57.12,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 33.4,
+        "token_score": 52.83,
+        "consumption_score": 93.03
+      },
+      "inputs": {
+        "token_avg_amount": 1533.61,
+        "token_frequency": 4,
+        "total_kwh": 116.2,
+        "peak_load_kw": 4.18,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "4024a871ab80735697028ffc7bde85671fc3865258b7437dbdbe3a2f8362a766",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 28.88,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 35.27,
+        "consumption_score": 31.51
+      },
+      "inputs": {
+        "token_avg_amount": 7224.34,
+        "token_frequency": 2,
+        "total_kwh": 474.8,
+        "peak_load_kw": 13.38,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "6908a2323a636d1171ce2be768e85830f15ee21517660156c67e5fc230755b13",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 27.56,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 33.59,
+        "consumption_score": 36.01
+      },
+      "inputs": {
+        "token_avg_amount": 7229.24,
+        "token_frequency": 1,
+        "total_kwh": 499.2,
+        "peak_load_kw": 8.51,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "ab83b5be02952157230c19909b35902615f699ca9515c54ad9bb506b5dfaf2fd",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 21.12,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 16.66,
+        "consumption_score": 31.46
+      },
+      "inputs": {
+        "token_avg_amount": 14668.89,
+        "token_frequency": 2,
+        "total_kwh": 475.6,
+        "peak_load_kw": 10.58,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "e7777c6d52ccbeeae49b87eef1a14927a2e0cfea6af82e1d5dd6a4929dbb93ae",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 20.23,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 15.69,
+        "consumption_score": 22.29
+      },
+      "inputs": {
+        "token_avg_amount": 14392.37,
+        "token_frequency": 1,
+        "total_kwh": 738.5,
+        "peak_load_kw": 8.35,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "cf5264f9c3db36f30160f3d0071d727ed0f73931b5e5dc1219e6b6a44dc660eb",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 30.29,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 39.88,
+        "consumption_score": 31.63
+      },
+      "inputs": {
+        "token_avg_amount": 5382.57,
+        "token_frequency": 2,
+        "total_kwh": 472.8,
+        "peak_load_kw": 13.08,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "31779c3b24d6b940bfd968ac7d38e03607dab2ae97bb9f13522da3f12b4f0021",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 25.18,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 24.01,
+        "consumption_score": 30.44
+      },
+      "inputs": {
+        "token_avg_amount": 11062.09,
+        "token_frequency": 1,
+        "total_kwh": 492.6,
+        "peak_load_kw": 11.19,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "7e507da8fe40c3fd49eb9edef484e1b67a44975d70b65f2ec3db088ea2b265d7",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 33.34,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 39.72,
+        "consumption_score": 41.95
+      },
+      "inputs": {
+        "token_avg_amount": 5443.87,
+        "token_frequency": 2,
+        "total_kwh": 300.8,
+        "peak_load_kw": 14.33,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "91886011c04955b13a6eaefbf6e5750d4d9dcc4ce98d7c5c0636535be8be900a",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 19.76,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 30.06,
+        "consumption_score": 13.54
+      },
+      "inputs": {
+        "token_avg_amount": 8642.21,
+        "token_frequency": 1,
+        "total_kwh": 774.4,
+        "peak_load_kw": 14.29,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "f6eaee343592546f2e243a6b47437fec37382da399b4e281a06715c53101f758",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 23.3,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 22.58,
+        "consumption_score": 25.61
+      },
+      "inputs": {
+        "token_avg_amount": 11633.87,
+        "token_frequency": 1,
+        "total_kwh": 659.9,
+        "peak_load_kw": 8.7,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "e0b3f5e91f9eafb8b59f5dbe0b3ee571f4f34de4b8203eefe2d856e0a89c2fe3",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 26.67,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 24.16,
+        "consumption_score": 35.29
+      },
+      "inputs": {
+        "token_avg_amount": 11668.93,
+        "token_frequency": 2,
+        "total_kwh": 501.2,
+        "peak_load_kw": 8.66,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "05ff795e5bf8762a13a694c4a433bbbdcc30ac3602f3e6e1cb61231ce8170519",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 23.99,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 36.04,
+        "consumption_score": 21.68
+      },
+      "inputs": {
+        "token_avg_amount": 6918.4,
+        "token_frequency": 2,
+        "total_kwh": 638.7,
+        "peak_load_kw": 14.13,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "f8aaeb768a74cea79043e9c53454f2a5094e6b8d373497f553221bdbba7d7fd0",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 29.94,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 29.01,
+        "consumption_score": 41.33
+      },
+      "inputs": {
+        "token_avg_amount": 9060.75,
+        "token_frequency": 1,
+        "total_kwh": 451.9,
+        "peak_load_kw": 7.89,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "b907f9ad7590ca51a1343d6db746701ed2dcb455f6608c42b951d40a80fac7e3",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 24.12,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 29.21,
+        "consumption_score": 21.73
+      },
+      "inputs": {
+        "token_avg_amount": 9649.88,
+        "token_frequency": 2,
+        "total_kwh": 637.8,
+        "peak_load_kw": 10.6,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "6f367c31d03ff31883f735aa1925cc7e08eaf6c679f0afdbf346857cf464936e",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 21.95,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 24.36,
+        "consumption_score": 26.54
+      },
+      "inputs": {
+        "token_avg_amount": 11588.51,
+        "token_frequency": 2,
+        "total_kwh": 557.7,
+        "peak_load_kw": 11.7,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "e1ef98db4614795859ffedc0b19659db820d504eaaffe2cf9882ecc5ec0e0e99",
+      "county": "Kiambu",
+      "poverty_index": 22.1,
+      "equity_score": 28.81,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 22.1,
+        "token_score": 36.83,
+        "consumption_score": 29.74
+      },
+      "inputs": {
+        "token_avg_amount": 5933.87,
+        "token_frequency": 1,
+        "total_kwh": 636.4,
+        "peak_load_kw": 8.02,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "aa05a93bfa91152b1baff994d00f49a3f9dfbb9d91e0750ee5b23974b97de76a",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 53.09,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [
+        "TURKANA_EXCEPTION"
+      ],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 25.69,
+        "consumption_score": 34.61
+      },
+      "inputs": {
+        "token_avg_amount": 10389.56,
+        "token_frequency": 1,
+        "total_kwh": 423.1,
+        "peak_load_kw": 17.84,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "fe80b25eae70b758c2756d5f1e42ed2f6c8a0b9812303fa7f7295c37179f330a",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 45.7,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [
+        "TURKANA_EXCEPTION"
+      ],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 13.33,
+        "consumption_score": 22.34
+      },
+      "inputs": {
+        "token_avg_amount": 15335.29,
+        "token_frequency": 1,
+        "total_kwh": 627.7,
+        "peak_load_kw": 16.86,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "36ddb8118c99a5d0809eb88597de901335b5b4576e6dd2b3cf4f0a0fd958d6c8",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 44.85,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [
+        "TURKANA_EXCEPTION"
+      ],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 17.73,
+        "consumption_score": 15.11
+      },
+      "inputs": {
+        "token_avg_amount": 14908.05,
+        "token_frequency": 3,
+        "total_kwh": 748.2,
+        "peak_load_kw": 12.94,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "309074d0d82e53ee6f8ce92fc3fe42905af643794b761b8eb65e9982b6a9ddea",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 47.92,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [
+        "TURKANA_EXCEPTION"
+      ],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 27.68,
+        "consumption_score": 15.37
+      },
+      "inputs": {
+        "token_avg_amount": 10927.81,
+        "token_frequency": 3,
+        "total_kwh": 743.8,
+        "peak_load_kw": 16.93,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "e84e672d6f1f12079a084d91bcc97540f246c77f804f931dab256cf73746c56b",
+      "county": "Turkana",
+      "poverty_index": 87.5,
+      "equity_score": 40.55,
+      "classification": "RED",
+      "suggested_tariff_multiplier": 1.4,
+      "flags": [
+        "TURKANA_EXCEPTION"
+      ],
+      "signal_breakdown": {
+        "geographic_score": 87.5,
+        "token_score": 5.85,
+        "consumption_score": 12.65
+      },
+      "inputs": {
+        "token_avg_amount": 18325.29,
+        "token_frequency": 1,
+        "total_kwh": 789.2,
+        "peak_load_kw": 10.19,
+        "has_load_spike": true
+      }
+    },
+    {
+      "account_id_hash": "49e5f4f543791fc242628a426d88419872a089709fbb159019e5d66ed95ec8de",
+      "county": "Busia",
+      "poverty_index": 58.3,
+      "equity_score": 73.58,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 58.3,
+        "token_score": 69.62,
+        "consumption_score": 97.9
+      },
+      "inputs": {
+        "token_avg_amount": 150.0,
+        "token_frequency": 12,
+        "total_kwh": 35.0,
+        "peak_load_kw": 1.8,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "457866c01475f728802410a2423ea528860ff8950e7faa1cc6edfa136bebf0fd",
+      "county": "Nairobi",
+      "poverty_index": 16.7,
+      "equity_score": 44.64,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 16.7,
+        "token_score": 43.33,
+        "consumption_score": 83.2
+      },
+      "inputs": {
+        "token_avg_amount": 4000.0,
+        "token_frequency": 2,
+        "total_kwh": 280.0,
+        "peak_load_kw": 4.5,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "bc5935801fd1239f71cb8f3cc1e7276c921c44ed4b8306d4a543157d5aa9525f",
+      "county": "Marsabit",
+      "poverty_index": 76.1,
+      "equity_score": 71.45,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 76.1,
+        "token_score": 47.5,
+        "consumption_score": 89.2
+      },
+      "inputs": {
+        "token_avg_amount": 3000.0,
+        "token_frequency": 3,
+        "total_kwh": 180.0,
+        "peak_load_kw": 4.8,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "6f232c2be4d2a787c4e3653f6349aa8445d2c06be7d8ff7636bcf6c1605c0eb7",
+      "county": "Wajir",
+      "poverty_index": 84.2,
+      "equity_score": 78.68,
+      "classification": "GREEN",
+      "suggested_tariff_multiplier": 0.6,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 84.2,
+        "token_score": 50.0,
+        "consumption_score": 100.0
+      },
+      "inputs": {
+        "token_avg_amount": 0.0,
+        "token_frequency": 0,
+        "total_kwh": 0.0,
+        "peak_load_kw": 0.0,
+        "has_load_spike": false
+      }
+    },
+    {
+      "account_id_hash": "8cb22c627b1cd2eef69965a20a5fd4239dfc5c244923390ad3148010eeb453f3",
+      "county": "Unknown County",
+      "poverty_index": 50.0,
+      "equity_score": 65.28,
+      "classification": "YELLOW",
+      "suggested_tariff_multiplier": 1.0,
+      "flags": [],
+      "signal_breakdown": {
+        "geographic_score": 50.0,
+        "token_score": 56.33,
+        "consumption_score": 94.6
+      },
+      "inputs": {
+        "token_avg_amount": 800.0,
+        "token_frequency": 5,
+        "total_kwh": 90.0,
+        "peak_load_kw": 2.5,
+        "has_load_spike": false
+      }
+    }
+  ]
+}

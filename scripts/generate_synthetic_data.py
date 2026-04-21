@@ -8,9 +8,10 @@ poverty levels, token purchase patterns, and consumption profiles.
 Includes 5 "Turkana Exception" accounts — luxury consumption in
 high-poverty zones that must be flagged RED.
 
+This script writes DIRECTLY to the database using the scoring engine
+(no HTTP/requests dependency needed).
+
 Usage:
-    python -m scripts.generate_synthetic_data
-    # or
     python scripts/generate_synthetic_data.py
 """
 
@@ -22,10 +23,10 @@ import os
 # Add project root to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import requests
-
-# Base URL for the API
-API_BASE = "http://localhost:8000"
+from app.database import SessionLocal, init_db
+from app.models import EquityResult, AuditTrail, Classification
+from app.scoring.engine import calculate_equity_score
+from datetime import datetime, timezone
 
 
 def generate_account_id(prefix: str, index: int) -> str:
@@ -46,10 +47,10 @@ def generate_deep_poverty_accounts(count: int = 30) -> list[dict]:
         accounts.append({
             "account_id": generate_account_id("DP", i + 1),
             "county": random.choice(counties),
-            "token_avg_amount": round(random.uniform(30, 80), 2),      # Very small purchases
-            "token_frequency": random.randint(15, 25),                  # Frequent small buys
-            "total_kwh": round(random.uniform(8, 30), 1),              # Lifeline range
-            "peak_load_kw": round(random.uniform(0.2, 1.5), 2),       # No luxury appliances
+            "token_avg_amount": round(random.uniform(30, 80), 2),
+            "token_frequency": random.randint(15, 25),
+            "total_kwh": round(random.uniform(8, 30), 1),
+            "peak_load_kw": round(random.uniform(0.2, 1.5), 2),
         })
 
     return accounts
@@ -93,7 +94,7 @@ def generate_urban_standard_accounts(count: int = 20) -> list[dict]:
             "token_avg_amount": round(random.uniform(1000, 3000), 2),
             "token_frequency": random.randint(2, 4),
             "total_kwh": round(random.uniform(100, 250), 1),
-            "peak_load_kw": round(random.uniform(2.0, 4.5), 2),       # Minor spikes
+            "peak_load_kw": round(random.uniform(2.0, 4.5), 2),
         })
 
     return accounts
@@ -115,7 +116,7 @@ def generate_urban_luxury_accounts(count: int = 15) -> list[dict]:
             "token_avg_amount": round(random.uniform(5000, 15000), 2),
             "token_frequency": random.randint(1, 2),
             "total_kwh": round(random.uniform(300, 800), 1),
-            "peak_load_kw": round(random.uniform(6.0, 15.0), 2),      # Heavy luxury
+            "peak_load_kw": round(random.uniform(6.0, 15.0), 2),
         })
 
     return accounts
@@ -143,7 +144,7 @@ def generate_turkana_exception_accounts(count: int = 5) -> list[dict]:
             "token_avg_amount": round(random.uniform(8000, 20000), 2),
             "token_frequency": random.randint(1, 3),
             "total_kwh": round(random.uniform(400, 900), 1),
-            "peak_load_kw": round(random.uniform(8.0, 18.0), 2),      # Heavy luxury in poverty zone!
+            "peak_load_kw": round(random.uniform(8.0, 18.0), 2),
         })
 
     return accounts
@@ -206,7 +207,7 @@ def generate_edge_case_accounts(count: int = 5) -> list[dict]:
 
 
 def main():
-    """Generate all synthetic accounts and submit via the batch API."""
+    """Generate all synthetic accounts and write directly to the database."""
     print("=" * 70)
     print("  EquityGrid Kenya — Synthetic Dataset Generator")
     print("  Generating 100 accounts across 6 scenarios")
@@ -214,6 +215,13 @@ def main():
 
     # Set random seed for reproducibility
     random.seed(42)
+
+    # Initialize the database tables
+    print("\n  ⚡ Initializing database...")
+    init_db()
+
+    # Open a database session
+    db = SessionLocal()
 
     # Generate all scenarios
     all_accounts = []
@@ -235,66 +243,154 @@ def main():
     print(f"\n  📊 Total accounts: {len(all_accounts)}")
     print("-" * 70)
 
-    # Submit via batch API
-    print(f"\n  📡 Submitting to API at {API_BASE}/api/v1/score/batch ...")
+    # Score each account and persist to DB
+    print(f"\n  📡 Scoring and persisting to database...")
 
-    try:
-        response = requests.post(
-            f"{API_BASE}/api/v1/score/batch",
-            json={"accounts": all_accounts},
-            timeout=60,
+    results = []
+    summary = {"GREEN": 0, "YELLOW": 0, "RED": 0}
+
+    for account in all_accounts:
+        # Run scoring engine
+        result = calculate_equity_score(
+            account_id=account["account_id"],
+            county=account["county"],
+            token_avg_amount=account["token_avg_amount"],
+            token_frequency=account["token_frequency"],
+            total_kwh=account["total_kwh"],
+            peak_load_kw=account["peak_load_kw"],
         )
-        response.raise_for_status()
-        data = response.json()
 
-        print(f"\n  ✅ Batch scoring complete!")
-        print(f"  📊 Total processed: {data['total_processed']}")
-        print(f"\n  Classification Summary:")
-        print(f"    🟢 GREEN  (Subsidize):    {data['summary']['GREEN']}")
-        print(f"    🟡 YELLOW (Standard):     {data['summary']['YELLOW']}")
-        print(f"    🔴 RED    (Luxury/Anomaly): {data['summary']['RED']}")
+        # Persist to database
+        flags_json = json.dumps(result.flags)
 
-        # Verify Turkana Exceptions
-        turkana_exceptions = [
-            r for r in data["results"]
-            if "TURKANA_EXCEPTION" in r.get("flags", [])
-        ]
-        print(f"\n  🚨 Turkana Exceptions detected: {len(turkana_exceptions)}")
-        for te in turkana_exceptions:
-            print(f"    → Hash: {te['account_id_hash'][:16]}...")
-            print(f"      Score: {te['equity_score']}, Class: {te['classification']}")
-            print(f"      Tariff: {te['suggested_tariff_multiplier']}×")
-            print(f"      Flags: {te['flags']}")
+        existing = (
+            db.query(EquityResult)
+            .filter(EquityResult.account_id_hash == result.account_id_hash)
+            .first()
+        )
 
-        # Show some sample results
-        print(f"\n  📋 Sample Results (first 5):")
-        for r in data["results"][:5]:
-            emoji = {"GREEN": "🟢", "YELLOW": "🟡", "RED": "🔴"}[r["classification"]]
-            print(
-                f"    {emoji} {r['county']:15s} | "
-                f"Score: {r['equity_score']:5.1f} | "
-                f"{r['classification']:6s} | "
-                f"Tariff: {r['suggested_tariff_multiplier']}×"
+        if existing:
+            existing.county = result.county
+            existing.poverty_index = result.poverty_index
+            existing.token_avg_amount = result.token_avg_amount
+            existing.token_frequency = result.token_frequency
+            existing.total_kwh = result.total_kwh
+            existing.peak_load_kw = result.peak_load_kw
+            existing.has_load_spike = result.has_load_spike
+            existing.geographic_score = result.geographic_score
+            existing.token_score = result.token_score
+            existing.consumption_score = result.consumption_score
+            existing.equity_score = result.equity_score
+            existing.classification = Classification(result.classification)
+            existing.suggested_tariff_multiplier = result.suggested_tariff_multiplier
+            existing.flags = flags_json
+            existing.created_at = datetime.now(timezone.utc)
+        else:
+            db_result = EquityResult(
+                account_id_hash=result.account_id_hash,
+                county=result.county,
+                poverty_index=result.poverty_index,
+                token_avg_amount=result.token_avg_amount,
+                token_frequency=result.token_frequency,
+                total_kwh=result.total_kwh,
+                peak_load_kw=result.peak_load_kw,
+                has_load_spike=result.has_load_spike,
+                geographic_score=result.geographic_score,
+                token_score=result.token_score,
+                consumption_score=result.consumption_score,
+                equity_score=result.equity_score,
+                classification=Classification(result.classification),
+                suggested_tariff_multiplier=result.suggested_tariff_multiplier,
+                flags=flags_json,
             )
+            db.add(db_result)
 
-        # Save full results to JSON
-        output_file = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            "synthetic_results.json"
+        # Audit trail
+        audit_entry = AuditTrail(
+            account_id_hash=result.account_id_hash,
+            action="SCORE_CALCULATED",
+            details=json.dumps({
+                "equity_score": result.equity_score,
+                "classification": result.classification,
+                "tariff_multiplier": result.suggested_tariff_multiplier,
+                "flags": result.flags,
+            }),
         )
-        with open(output_file, "w") as f:
-            json.dump(data, f, indent=2)
-        print(f"\n  💾 Full results saved to: {output_file}")
+        db.add(audit_entry)
 
-    except requests.ConnectionError:
-        print(f"\n  ❌ ERROR: Cannot connect to {API_BASE}")
-        print(f"  Make sure the API is running:")
-        print(f"    uvicorn app.main:app --reload --port 8000")
-        sys.exit(1)
-    except requests.HTTPError as e:
-        print(f"\n  ❌ HTTP Error: {e}")
-        print(f"  Response: {e.response.text}")
-        sys.exit(1)
+        summary[result.classification] += 1
+        results.append(result)
+
+    db.commit()
+
+    print(f"\n  ✅ Batch scoring complete!")
+    print(f"  📊 Total processed: {len(results)}")
+    print(f"\n  Classification Summary:")
+    print(f"    🟢 GREEN  (Subsidize):      {summary['GREEN']}")
+    print(f"    🟡 YELLOW (Standard):       {summary['YELLOW']}")
+    print(f"    🔴 RED    (Luxury/Anomaly): {summary['RED']}")
+
+    # Verify Turkana Exceptions
+    turkana_exceptions = [r for r in results if "TURKANA_EXCEPTION" in r.flags]
+    print(f"\n  🚨 Turkana Exceptions detected: {len(turkana_exceptions)}")
+    for te in turkana_exceptions:
+        print(f"    → Hash: {te.account_id_hash[:16]}...")
+        print(f"      Score: {te.equity_score}, Class: {te.classification}")
+        print(f"      Tariff: {te.suggested_tariff_multiplier}×")
+        print(f"      Flags: {te.flags}")
+        print(f"      kWh: {te.total_kwh}, Peak: {te.peak_load_kw} kW")
+
+    # Show sample results
+    print(f"\n  📋 Sample Results (first 10):")
+    for r in results[:10]:
+        emoji = {"GREEN": "🟢", "YELLOW": "🟡", "RED": "🔴"}[r.classification]
+        print(
+            f"    {emoji} {r.county:15s} | "
+            f"Score: {r.equity_score:5.1f} | "
+            f"{r.classification:6s} | "
+            f"Tariff: {r.suggested_tariff_multiplier}× | "
+            f"kWh: {r.total_kwh:6.1f} | "
+            f"Peak: {r.peak_load_kw:4.1f}kW"
+        )
+
+    # Save full results to JSON
+    output_file = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "synthetic_results.json"
+    )
+    export_data = {
+        "total_processed": len(results),
+        "summary": summary,
+        "results": [
+            {
+                "account_id_hash": r.account_id_hash,
+                "county": r.county,
+                "poverty_index": r.poverty_index,
+                "equity_score": r.equity_score,
+                "classification": r.classification,
+                "suggested_tariff_multiplier": r.suggested_tariff_multiplier,
+                "flags": r.flags,
+                "signal_breakdown": {
+                    "geographic_score": r.geographic_score,
+                    "token_score": r.token_score,
+                    "consumption_score": r.consumption_score,
+                },
+                "inputs": {
+                    "token_avg_amount": r.token_avg_amount,
+                    "token_frequency": r.token_frequency,
+                    "total_kwh": r.total_kwh,
+                    "peak_load_kw": r.peak_load_kw,
+                    "has_load_spike": r.has_load_spike,
+                },
+            }
+            for r in results
+        ],
+    }
+    with open(output_file, "w") as f:
+        json.dump(export_data, f, indent=2)
+    print(f"\n  💾 Full results saved to: {output_file}")
+
+    db.close()
 
     print("\n" + "=" * 70)
     print("  ✅ Synthetic dataset generation complete!")
