@@ -7,6 +7,7 @@ Handles validation, serialization, and API documentation.
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -55,7 +56,7 @@ class AccountInput(BaseModel):
         description="Peak instantaneous load in kW (luxury appliance indicator)",
         examples=[0.5, 2.0, 8.0],
     )
-    latitude: float | None = Field(
+    latitude: Optional[float] = Field(
         None,
         ge=-90,
         le=90,
@@ -64,7 +65,7 @@ class AccountInput(BaseModel):
             "Variable 2 via a hashed geographic layer — never stored."
         ),
     )
-    longitude: float | None = Field(
+    longitude: Optional[float] = Field(
         None,
         ge=-180,
         le=180,
@@ -190,8 +191,8 @@ class ResultRecord(BaseModel):
     load_profile_score: float
     consumption_score: float
     location_type: str
-    location_subcounty: str | None = None
-    geo_layer_fingerprint: str | None = None
+    location_subcounty: Optional[str] = None
+    geo_layer_fingerprint: Optional[str] = None
     equity_score: float
     classification: str
     suggested_tariff_multiplier: float

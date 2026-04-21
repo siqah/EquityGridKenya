@@ -7,6 +7,7 @@ database persistence, and audit trail logging.
 
 import json
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -233,11 +234,11 @@ def score_batch(
 def list_results(
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Results per page"),
-    classification: str | None = Query(
+    classification: Optional[str] = Query(
         None,
         description="Filter by classification: GREEN, YELLOW, or RED",
     ),
-    county: str | None = Query(None, description="Filter by county name"),
+    county: Optional[str] = Query(None, description="Filter by county name"),
     db: Session = Depends(get_db),
 ):
     """List all scored results with optional filtering."""
