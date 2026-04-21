@@ -37,22 +37,22 @@ export default function VitalsPage() {
 
   if (loading) {
     return (
-      <div className="loading-state">
-        <div className="loading-spinner"></div>
-        <div className="loading-text">Loading equity intelligence…</div>
+      <div className="flex flex-col items-center justify-center p-16 text-slate-500">
+        <div className="w-9 h-9 border-4 border-glass border-t-cyan-accent rounded-full animate-spin mb-4"></div>
+        <div className="text-[13px] font-medium">Loading equity intelligence…</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="loading-state">
-        <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</div>
-        <div className="loading-text">
+      <div className="flex flex-col items-center justify-center p-16 text-slate-500">
+        <div className="text-[32px] mb-3">⚠️</div>
+        <div className="text-[13px] font-medium text-red-400">
           Failed to connect to EquityGrid API
         </div>
-        <div style={{ fontSize: '12px', color: 'var(--slate-500)', marginTop: '8px' }}>
-          Ensure FastAPI is running: <code>uvicorn app.main:app --port 8000</code>
+        <div className="text-xs text-slate-500 mt-2">
+          Ensure FastAPI is running: <code className="bg-navy-800 px-2 py-1 rounded">uvicorn app.main:app --port 8000</code>
         </div>
       </div>
     );
@@ -73,23 +73,23 @@ export default function VitalsPage() {
   const revenueBalance = leakageDetected - subsidyManaged;
 
   return (
-    <div className="page-container">
+    <div className="p-7 max-w-[1440px] mx-auto">
       {/* Page Header */}
-      <div className="page-header fade-in">
-        <h2 className="page-title">Vitals Overview</h2>
-        <p className="page-subtitle">
+      <div className="mb-7 animate-[fadeIn_0.5s_ease-out]">
+        <h2 className="text-2xl font-extrabold text-slate-50 tracking-[-0.5px] mb-1">Vitals Overview</h2>
+        <p className="text-[13.5px] text-slate-400">
           Real-time equity intelligence across {stats?.counties_covered || 0} counties
           {' · '}{totalAccounts} accounts scored
           {stats?.turkana_exceptions > 0 && (
-            <span style={{ color: 'var(--red-luxury)' }}>
-              {' · '}{stats.turkana_exceptions} anomalies detected
+            <span className="text-red-luxury ml-1">
+              {'· '}{stats.turkana_exceptions} anomalies detected
             </span>
           )}
         </p>
       </div>
 
       {/* KPI Cards */}
-      <div className="kpi-grid">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-7">
         <KPICard
           label="Total Subsidies Managed"
           value={`KSh ${subsidyManaged.toLocaleString()}`}
@@ -117,7 +117,7 @@ export default function VitalsPage() {
       </div>
 
       {/* Charts Row */}
-      <div className="charts-grid">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-7">
         <ClassificationChart stats={stats} />
         <ScoreDistribution results={allResults} />
       </div>
@@ -126,7 +126,7 @@ export default function VitalsPage() {
       <TurkanaAlertPanel results={allResults} />
 
       {/* Signal Breakdown */}
-      <div style={{ marginTop: '20px' }}>
+      <div className="mt-5">
         <SignalBreakdown results={allResults} />
       </div>
     </div>
