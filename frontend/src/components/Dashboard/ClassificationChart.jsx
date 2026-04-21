@@ -1,151 +1,82 @@
-import { useEffect, useRef } from 'react';
-import * as d3 from 'd3';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
 
-/**
- * D3.js Donut Chart — Classification Distribution
- * Renders GREEN/YELLOW/RED counts as an interactive donut.
- */
+ChartJS.register(ArcElement, Tooltip, Legend);
+
 export default function ClassificationChart({ stats }) {
-  const svgRef = useRef(null);
-  const tooltipRef = useRef(null);
-
-  const colors = {
-    GREEN: '#2ECC71',
-    YELLOW: '#F1C40F',
-    RED: '#E74C3C',
-  };
-
-  const labels = {
-    GREEN: 'Subsidize (Green)',
-    YELLOW: 'Standard (Yellow)',
-    RED: 'Luxury / Anomaly (Red)',
-  };
-
-  useEffect(() => {
-    if (!stats || !svgRef.current) return;
-
-    const counts = stats.classification_counts || {};
-    const data = [
-      { key: 'GREEN', value: counts.GREEN || 0 },
-      { key: 'YELLOW', value: counts.YELLOW || 0 },
-      { key: 'RED', value: counts.RED || 0 },
-    ].filter(d => d.value > 0);
-
-    const total = d3.sum(data, d => d.value);
-    if (total === 0) return;
-
-    // Dimensions
-    const width = 220;
-    const height = 220;
-    const radius = Math.min(width, height) / 2;
-    const innerRadius = radius * 0.62;
-
-    // Clear previous
-    d3.select(svgRef.current).selectAll('*').remove();
-
-    const svg = d3
-      .select(svgRef.current)
-      .attr('width', width)
-      .attr('height', height)
-      .append('g')
-      .attr('transform', `translate(${width / 2}, ${height / 2})`);
-
-    // Arc generator
-    const arc = d3.arc().innerRadius(innerRadius).outerRadius(radius).cornerRadius(4).padAngle(0.03);
-
-    const hoverArc = d3.arc().innerRadius(innerRadius - 2).outerRadius(radius + 6).cornerRadius(4).padAngle(0.03);
-
-    // Pie generator
-    const pie = d3.pie().value(d => d.value).sort(null);
-
-    // Draw arcs with animation
-    const arcs = svg
-      .selectAll('.arc')
-      .data(pie(data))
-      .join('g')
-      .attr('class', 'arc')
-      .style('cursor', 'pointer');
-
-    arcs
-      .append('path')
-      .attr('fill', d => colors[d.data.key])
-      .attr('opacity', 0.9)
-      .each(function (d) {
-        this._current = { startAngle: 0, endAngle: 0 };
-      })
-      .transition()
-      .duration(800)
-      .ease(d3.easeCubicOut)
-      .attrTween('d', function (d) {
-        const interpolate = d3.interpolate(this._current, d);
-        this._current = interpolate(1);
-        return t => arc(interpolate(t));
-      });
-
-    // Hover effects
-    arcs
-      .selectAll('path')
-      .on('mouseenter', function (event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr('d', hoverArc(d))
-          .attr('opacity', 1);
-      })
-      .on('mouseleave', function (event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr('d', arc(d))
-          .attr('opacity', 0.9);
-      });
-
-    // Center text
-    svg.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '-6px')
-      .attr('fill', '#F1F5F9')
-      .attr('font-size', '28px')
-      .attr('font-weight', '800')
-      .attr('font-family', "'Inter', sans-serif")
-      .text(total);
-
-    svg.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '16px')
-      .attr('fill', '#94A3B8')
-      .attr('font-size', '10px')
-      .attr('font-weight', '600')
-      .attr('font-family', "'Inter', sans-serif")
-      .attr('letter-spacing', '1.5px')
-      .text('ACCOUNTS');
-
-  }, [stats]);
-
   if (!stats) return null;
 
   const counts = stats.classification_counts || {};
+  const total = (counts.GREEN || 0) + (counts.YELLOW || 0) + (counts.RED || 0);
+
+  const data = {
+    labels: ['Subsidize (Green)', 'Standard (Yellow)', 'Luxury (Red)'],
+    datasets: [
+      {
+        data: [counts.GREEN || 0, counts.YELLOW || 0, counts.RED || 0],
+        backgroundColor: ['#2ECC71', '#F1C40F', '#E74C3C'],
+        hoverBackgroundColor: ['#1A7A43', '#9A7D0A', '#922B21'],
+        borderWidth: 0,
+        hoverOffset: 6,
+      },
+    ],
+  };
+
+  const options = {
+    cutout: '62%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(0,31,63,0.9)',
+        titleColor: '#F1F5F9',
+        bodyColor: '#CBD5E1',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        padding: 12,
+        displayColors: true,
+        callbacks: {
+          label: (context) => ` ${context.label}: ${context.raw} accounts`,
+        },
+      },
+    },
+    animation: {
+      animateScale: true,
+      animateRotate: true,
+    },
+  };
 
   return (
-    <div className="glass-card">
-      <div className="glass-card-header">
-        <span className="glass-card-title">Classification Distribution</span>
+    <div className="glass-window flex flex-col h-full">
+      <div className="px-5 py-4 border-b border-glass flex items-center justify-between">
+        <span className="text-[13px] font-semibold text-slate-300 uppercase tracking-widest">Classification Distribution</span>
       </div>
-      <div className="glass-card-body" style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-        <svg ref={svgRef}></svg>
-        <div className="donut-legend">
+      <div className="p-6 flex items-center gap-8 flex-1">
+        
+        {/* Chart Container */}
+        <div className="relative w-[200px] h-[200px] flex-shrink-0">
+          <Doughnut data={data} options={options} />
+          {/* Center Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-1">
+            <span className="text-3xl font-extrabold text-slate-100">{total}</span>
+            <span className="text-[10px] font-semibold text-slate-400 tracking-[1.5px] uppercase mt-0.5">Accounts</span>
+          </div>
+        </div>
+
+        {/* Legend Custom */}
+        <div className="flex flex-col gap-3 flex-1">
           {[
-            { key: 'GREEN', cls: 'green', label: 'Subsidize (Green)' },
-            { key: 'YELLOW', cls: 'yellow', label: 'Standard (Yellow)' },
-            { key: 'RED', cls: 'red', label: 'Luxury / Anomaly (Red)' },
+            { key: 'GREEN', colorClass: 'bg-green-subsidy', label: 'Subsidize (Green)' },
+            { key: 'YELLOW', colorClass: 'bg-yellow-standard', label: 'Standard (Yellow)' },
+            { key: 'RED', colorClass: 'bg-red-luxury', label: 'Luxury / Anomaly (Red)' },
           ].map(item => (
-            <div key={item.key} className="donut-legend-item">
-              <span className={`donut-legend-dot ${item.cls}`}></span>
-              <span className="donut-legend-label">{item.label}</span>
-              <span className="donut-legend-value">{counts[item.key] || 0}</span>
+            <div key={item.key} className="flex items-center gap-3">
+              <span className={`w-3 h-3 rounded-full shrink-0 ${item.colorClass}`}></span>
+              <span className="text-sm text-slate-400 flex-1">{item.label}</span>
+              <span className="text-base font-bold text-slate-200 font-mono">{counts[item.key] || 0}</span>
             </div>
           ))}
         </div>
+
       </div>
     </div>
   );
