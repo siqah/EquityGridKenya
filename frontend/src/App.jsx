@@ -18,10 +18,10 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="app-layout">
+      <div className="flex min-h-screen">
         <Sidebar />
         <Header stats={stats} />
-        <main className="main-content">
+        <main className="flex-1 ml-[260px] pt-[64px] min-h-screen">
           <Routes>
             <Route path="/" element={<VitalsPage />} />
             <Route path="/accounts" element={<AccountsPage />} />
