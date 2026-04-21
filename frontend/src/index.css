@@ -15,7 +15,7 @@
 
 @layer components {
   .glass-window {
-    @apply bg-[rgba(0,43,86,0.45)] border border-[rgba(255,255,255,0.08)] rounded-2xl backdrop-blur-md transition-all duration-250 ease-out;
+    @apply bg-[rgba(0,43,86,0.45)] border border-[rgba(255,255,255,0.08)] rounded-2xl backdrop-blur-md transition-all duration-300 ease-out;
   }
   
   .glass-window:hover {
