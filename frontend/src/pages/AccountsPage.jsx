@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchResults } from '../api/equityApi';
 
-/**
- * Account Intelligence Page — Filterable table of all scored accounts.
- */
 export default function AccountsPage() {
   const [results, setResults] = useState([]);
   const [total, setTotal] = useState(0);
@@ -17,11 +14,7 @@ export default function AccountsPage() {
     async function loadData() {
       try {
         setLoading(true);
-        const data = await fetchResults({
-          page,
-          per_page: perPage,
-          classification: filter,
-        });
+        const data = await fetchResults({ page, per_page: perPage, classification: filter });
         setResults(data.results || []);
         setTotal(data.total || 0);
       } catch (err) {
@@ -35,53 +28,52 @@ export default function AccountsPage() {
 
   const totalPages = Math.ceil(total / perPage);
 
-  const getScoreClass = (classification) => {
-    switch (classification) {
-      case 'GREEN': return 'green';
-      case 'YELLOW': return 'yellow';
-      case 'RED': return 'red';
-      default: return '';
-    }
+  const getScoreColor = (c) => {
+    if (c === 'GREEN') return 'text-green-subsidy';
+    if (c === 'YELLOW') return 'text-yellow-standard';
+    return 'text-red-luxury';
+  };
+
+  const getBadgeStyle = (c) => {
+    if (c === 'GREEN') return 'bg-green-subsidy/15 text-green-subsidy border-green-subsidy/30';
+    if (c === 'YELLOW') return 'bg-yellow-standard/15 text-yellow-standard border-yellow-standard/30';
+    return 'bg-red-luxury/15 text-red-luxury border-red-luxury/30';
   };
 
   return (
-    <div className="page-container">
-      <div className="page-header fade-in">
-        <h2 className="page-title">Account Intelligence</h2>
-        <p className="page-subtitle">
-          Browse and filter all scored household accounts · {total} total records
-        </p>
+    <div className="p-7 max-w-[1440px] mx-auto">
+      <div className="mb-7 animate-[fadeIn_0.5s_ease-out]">
+        <h2 className="text-2xl font-extrabold text-slate-50 tracking-[-0.5px] mb-1">Account Intelligence</h2>
+        <p className="text-[13.5px] text-slate-400">Browse and filter all scored household accounts · {total} total records</p>
       </div>
 
-      {/* Filters */}
-      <div className="filter-bar fade-in fade-in-delay-1">
+      <div className="flex items-center gap-2.5 mb-5 flex-wrap animate-[fadeIn_0.5s_ease-out_0.1s_both]">
         <button
-          className={`filter-btn ${filter === null ? 'active' : ''}`}
+          className={`btn-filter ${filter === null ? 'border-cyan-accent text-cyan-accent bg-cyan-accent/20' : ''}`}
           onClick={() => { setFilter(null); setPage(1); }}
-        >
-          All ({total})
-        </button>
-        {['GREEN', 'YELLOW', 'RED'].map(cls => (
-          <button
-            key={cls}
-            className={`filter-btn ${cls} ${filter === cls ? 'active' : ''}`}
-            onClick={() => { setFilter(cls); setPage(1); }}
-          >
-            {cls}
-          </button>
-        ))}
+        >All ({total})</button>
+        {['GREEN', 'YELLOW', 'RED'].map(cls => {
+          let activeClass = '';
+          if (filter === cls) {
+            if (cls === 'GREEN') activeClass = 'border-green-subsidy text-green-subsidy bg-green-subsidy/15';
+            else if (cls === 'YELLOW') activeClass = 'border-yellow-standard text-yellow-standard bg-yellow-standard/15';
+            else activeClass = 'border-red-luxury text-red-luxury bg-red-luxury/15';
+          }
+          return (
+            <button key={cls} className={`btn-filter ${activeClass}`} onClick={() => { setFilter(cls); setPage(1); }}>{cls}</button>
+          );
+        })}
       </div>
 
-      {/* Table */}
-      <div className="glass-card fade-in fade-in-delay-2">
-        <div className="data-table-wrapper">
+      <div className="glass-window overflow-hidden animate-[fadeIn_0.5s_ease-out_0.2s_both]">
+        <div className="overflow-x-auto">
           {loading ? (
-            <div className="loading-state">
-              <div className="loading-spinner"></div>
-              <div className="loading-text">Loading accounts…</div>
+            <div className="flex flex-col items-center justify-center p-16 text-slate-500">
+              <div className="w-9 h-9 border-4 border-glass border-t-cyan-accent rounded-full animate-spin mb-4"></div>
+              <div className="text-[13px] font-medium">Loading accounts…</div>
             </div>
           ) : (
-            <table className="data-table" id="accounts-table">
+            <table className="table-glass">
               <thead>
                 <tr>
                   <th>Account Hash</th>
@@ -97,15 +89,13 @@ export default function AccountsPage() {
                 </tr>
               </thead>
               <tbody>
-                {results.map((r, idx) => (
+                {results.map((r) => (
                   <tr key={r.account_id_hash}>
-                    <td className="hash-cell">{r.account_id_hash.substring(0, 16)}…</td>
+                    <td className="font-mono text-[11px] text-slate-500">{r.account_id_hash.substring(0, 16)}…</td>
                     <td>{r.county}</td>
-                    <td className={`score-cell ${getScoreClass(r.classification)}`}>
-                      {r.equity_score.toFixed(1)}
-                    </td>
+                    <td className={`font-mono font-bold ${getScoreColor(r.classification)}`}>{r.equity_score.toFixed(1)}</td>
                     <td>
-                      <span className={`classification-badge ${r.classification}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-[0.5px] uppercase border ${getBadgeStyle(r.classification)}`}>
                         {r.classification}
                       </span>
                     </td>
@@ -116,11 +106,9 @@ export default function AccountsPage() {
                     <td>{r.token_frequency}/mo</td>
                     <td>
                       {r.flags && r.flags.length > 0 ? (
-                        <span style={{ color: 'var(--red-luxury)', fontSize: '11px', fontWeight: 700 }}>
-                          🚨 {r.flags.join(', ')}
-                        </span>
+                        <span className="text-red-luxury text-[11px] font-bold">🚨 {r.flags.join(', ')}</span>
                       ) : (
-                        <span style={{ color: 'var(--slate-600)', fontSize: '11px' }}>—</span>
+                        <span className="text-slate-600 text-[11px]">—</span>
                       )}
                     </td>
                   </tr>
@@ -131,31 +119,11 @@ export default function AccountsPage() {
         </div>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
-        <div style={{
-          display: 'flex', justifyContent: 'center', gap: '8px',
-          marginTop: '20px', alignItems: 'center',
-        }}>
-          <button
-            className="filter-btn"
-            disabled={page === 1}
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            style={{ opacity: page === 1 ? 0.3 : 1 }}
-          >
-            ← Previous
-          </button>
-          <span style={{ fontSize: '12px', color: 'var(--slate-400)', padding: '0 12px' }}>
-            Page {page} of {totalPages}
-          </span>
-          <button
-            className="filter-btn"
-            disabled={page === totalPages}
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            style={{ opacity: page === totalPages ? 0.3 : 1 }}
-          >
-            Next →
-          </button>
+        <div className="flex justify-center gap-2 mt-5 items-center">
+          <button className="btn-filter" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))} style={{ opacity: page === 1 ? 0.3 : 1 }}>← Previous</button>
+          <span className="text-xs text-slate-400 px-3">Page {page} of {totalPages}</span>
+          <button className="btn-filter" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} style={{ opacity: page === totalPages ? 0.3 : 1 }}>Next →</button>
         </div>
       )}
     </div>
