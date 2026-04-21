@@ -9,6 +9,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+import os
 
 from app.config import get_settings
 from app.database import init_db
@@ -68,14 +72,37 @@ app.add_middleware(
 # Register routes
 app.include_router(equity_router)
 
+# Mount the frontend built React app
+frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
 
-@app.get("/", tags=["root"])
-def root():
-    """Root endpoint — API information."""
-    return {
-        "name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "description": "Energy Equity Intelligence Engine for Kenya",
-        "docs": "/docs",
-        "health": "/api/v1/health",
-    }
+if os.path.exists(frontend_dist):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+
+    @app.exception_handler(StarletteHTTPException)
+    async def catch_all(request, exc):
+        # Allow API 404s to pass through
+        if request.url.path.startswith("/api/"):
+            raise exc
+        if exc.status_code == 404:
+            return FileResponse(os.path.join(frontend_dist, "index.html"))
+        raise exc
+
+    @app.get("/{catchall:path}", include_in_schema=False)
+    def serve_react_app(catchall: str):
+        if catchall.startswith("api/"):
+            raise StarletteHTTPException(status_code=404, detail="API route not found")
+        # Read index.html for any other route
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+
+else:
+    @app.get("/", tags=["root"])
+    def root():
+        """Root endpoint — API information."""
+        return {
+            "name": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "description": "Energy Equity Intelligence Engine for Kenya",
+            "docs": "/docs",
+            "health": "/api/v1/health",
+            "frontend": "Not built yet. Run `npm run build` in /frontend."
+        }
