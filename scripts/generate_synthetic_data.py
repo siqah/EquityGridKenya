@@ -279,7 +279,13 @@ def main():
             existing.has_load_spike = result.has_load_spike
             existing.geographic_score = result.geographic_score
             existing.token_score = result.token_score
+            existing.monthly_kwh_equity_score = result.monthly_kwh_equity_score
+            existing.location_equity_score = result.location_equity_score
+            existing.load_profile_score = result.load_profile_score
             existing.consumption_score = result.consumption_score
+            existing.location_type = result.location_type
+            existing.location_subcounty = result.location_subcounty
+            existing.geo_layer_fingerprint = result.geo_layer_fingerprint
             existing.equity_score = result.equity_score
             existing.classification = Classification(result.classification)
             existing.suggested_tariff_multiplier = result.suggested_tariff_multiplier
@@ -297,7 +303,13 @@ def main():
                 has_load_spike=result.has_load_spike,
                 geographic_score=result.geographic_score,
                 token_score=result.token_score,
+                monthly_kwh_equity_score=result.monthly_kwh_equity_score,
+                location_equity_score=result.location_equity_score,
+                load_profile_score=result.load_profile_score,
                 consumption_score=result.consumption_score,
+                location_type=result.location_type,
+                location_subcounty=result.location_subcounty,
+                geo_layer_fingerprint=result.geo_layer_fingerprint,
                 equity_score=result.equity_score,
                 classification=Classification(result.classification),
                 suggested_tariff_multiplier=result.suggested_tariff_multiplier,
@@ -373,6 +385,8 @@ def main():
                 "signal_breakdown": {
                     "geographic_score": r.geographic_score,
                     "token_score": r.token_score,
+                    "monthly_kwh_equity_score": r.monthly_kwh_equity_score,
+                    "location_equity_score": r.location_equity_score,
                     "consumption_score": r.consumption_score,
                 },
                 "inputs": {

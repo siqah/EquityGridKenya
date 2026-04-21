@@ -92,7 +92,13 @@ TOKEN_FREQUENCY_MAX: int = 30            # Max expected purchases per month (dai
 
 
 # ─── Consumption Thresholds ──────────────────────────────────────────────────
-# Based on KPLC Domestic tariff brackets and EPRA baselines
+# Based on KPLC Domestic tariff brackets and EPRA baselines.
+#
+# Variable 1 (monthly kWh) is benchmarked alongside national system stress:
+# ~2,439.06 MW Kenya system peak demand (2025/26 planning context) informs the
+# interpretation of "high" household draw during peak hours vs lifeline tiers.
+
+KENYA_SYSTEM_PEAK_DEMAND_MW_2025_26: float = 2439.06
 
 CONSUMPTION_LIFELINE_KWH: float = 30.0    # KPLC Domestic 1 (lifeline) ceiling
 CONSUMPTION_STANDARD_KWH: float = 200.0   # Domestic 2 typical upper range

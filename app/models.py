@@ -56,7 +56,14 @@ class EquityResult(Base):
     # Computed Scores (0-100 each)
     geographic_score = Column(Float, nullable=False)
     token_score = Column(Float, nullable=False)
+    # Legacy name: stores peak-load / spike profile (Variable — load layer)
     consumption_score = Column(Float, nullable=False)
+    monthly_kwh_equity_score = Column(Float, nullable=False, default=0.0)
+    location_equity_score = Column(Float, nullable=False, default=0.0)
+    load_profile_score = Column(Float, nullable=False, default=0.0)
+    location_type = Column(String(32), nullable=False, default="county_aggregate")
+    location_subcounty = Column(String(120), nullable=True)
+    geo_layer_fingerprint = Column(String(32), nullable=True)
 
     # Final Result
     equity_score = Column(Float, nullable=False)

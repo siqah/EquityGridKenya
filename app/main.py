@@ -42,10 +42,13 @@ app = FastAPI(
         "- 🟢 **GREEN** (Score 70-100): Subsidize — genuine energy poverty\n"
         "- 🟡 **YELLOW** (Score 40-69): Standard — no adjustment\n"
         "- 🔴 **RED** (Score 0-39): Luxury/Anomaly — cross-subsidy contributor\n\n"
-        "### Signals\n"
-        "1. **Geographic Zone** — County poverty index (KNBS data)\n"
-        "2. **Consumption Data** — kWh usage + load spike detection\n"
-        "3. **Token Patterns** — Purchase frequency & average amount\n"
+        "### Signals (weighted)\n"
+        "1. **Variable 5 — Poverty index** — County headcount (KNBS / WB), 25%\n"
+        "2. **Token patterns** — Purchase frequency and amount, 30%\n"
+        "3. **Variable 1 — Monthly kWh band** — Lifeline vs high consumption, 10%\n"
+        "4. **Variable 2 — Location type** — KNBS Census Vol II–linked urban/rural "
+        "bands via hashed coordinates (optional lat/lon), 10%\n"
+        "5. **Peak load profile** — Demand spikes / luxury appliances, 25%\n"
     ),
     version=settings.APP_VERSION,
     lifespan=lifespan,

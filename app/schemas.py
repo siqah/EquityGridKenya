@@ -7,9 +7,8 @@ Handles validation, serialization, and API documentation.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # ─── Request Schemas ─────────────────────────────────────────────────────────
@@ -56,12 +55,33 @@ class AccountInput(BaseModel):
         description="Peak instantaneous load in kW (luxury appliance indicator)",
         examples=[0.5, 2.0, 8.0],
     )
+    latitude: float | None = Field(
+        None,
+        ge=-90,
+        le=90,
+        description=(
+            "Optional latitude (WGS84). Used only in-memory with longitude to derive "
+            "Variable 2 via a hashed geographic layer — never stored."
+        ),
+    )
+    longitude: float | None = Field(
+        None,
+        ge=-180,
+        le=180,
+        description="Optional longitude (WGS84). Must be sent together with latitude.",
+    )
 
     @field_validator("county")
     @classmethod
     def normalize_county(cls, v: str) -> str:
         """Normalize county name to title case."""
         return v.strip().title()
+
+    @model_validator(mode="after")
+    def latitude_longitude_pair(self) -> "AccountInput":
+        if (self.latitude is None) ^ (self.longitude is None):
+            raise ValueError("Provide both latitude and longitude, or omit both.")
+        return self
 
 
 class BatchScoreRequest(BaseModel):
@@ -81,9 +101,20 @@ class BatchScoreRequest(BaseModel):
 class SignalBreakdown(BaseModel):
     """Detailed breakdown of individual signal scores."""
 
-    geographic_score: float = Field(..., description="Geographic/poverty signal (0-100)")
+    geographic_score: float = Field(..., description="Variable 5 — county poverty index (0-100)")
     token_score: float = Field(..., description="Token purchase pattern signal (0-100)")
-    consumption_score: float = Field(..., description="Consumption/load signal (0-100)")
+    monthly_kwh_equity_score: float = Field(
+        ...,
+        description="Variable 1 — monthly kWh lifeline vs high-consumption band (0-100)",
+    )
+    location_equity_score: float = Field(
+        ...,
+        description="Variable 2 — location-type equity need from KNBS-linked bands (0-100)",
+    )
+    consumption_score: float = Field(
+        ...,
+        description="Peak load / demand-spike profile, 0-100 (legacy field name)",
+    )
 
 
 class EquityScoreResponse(BaseModel):
@@ -113,6 +144,10 @@ class EquityScoreResponse(BaseModel):
         description="Special flags, e.g. ['TURKANA_EXCEPTION']",
     )
     signal_breakdown: SignalBreakdown
+    explanation: str = Field(
+        ...,
+        description="Plain-language rationale from explain_score()",
+    )
 
 
 class BatchScoreResponse(BaseModel):
@@ -150,11 +185,18 @@ class ResultRecord(BaseModel):
     has_load_spike: bool
     geographic_score: float
     token_score: float
+    monthly_kwh_equity_score: float
+    location_equity_score: float
+    load_profile_score: float
     consumption_score: float
+    location_type: str
+    location_subcounty: str | None = None
+    geo_layer_fingerprint: str | None = None
     equity_score: float
     classification: str
     suggested_tariff_multiplier: float
     flags: list[str]
+    explanation: str
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -25,7 +25,11 @@ from app.schemas import (
     SignalBreakdown,
     StatsResponse,
 )
-from app.scoring.engine import calculate_equity_score
+from app.scoring.engine import (
+    calculate_equity_score,
+    equity_orm_to_scoring_result,
+    explain_score,
+)
 from app.config import get_settings
 
 router = APIRouter(prefix="/api/v1", tags=["equity"])
@@ -39,7 +43,6 @@ def _score_and_persist(
     Score a single account, persist to database, and log to audit trail.
     Returns the API response schema.
     """
-    # Run the scoring engine
     result = calculate_equity_score(
         account_id=account.account_id,
         county=account.county,
@@ -47,9 +50,10 @@ def _score_and_persist(
         token_frequency=account.token_frequency,
         total_kwh=account.total_kwh,
         peak_load_kw=account.peak_load_kw,
+        latitude=account.latitude,
+        longitude=account.longitude,
     )
 
-    # Check if account already exists (upsert logic)
     existing = (
         db.query(EquityResult)
         .filter(EquityResult.account_id_hash == result.account_id_hash)
@@ -57,9 +61,9 @@ def _score_and_persist(
     )
 
     flags_json = json.dumps(result.flags)
+    explanation = explain_score(result)
 
     if existing:
-        # Update existing record
         existing.county = result.county
         existing.poverty_index = result.poverty_index
         existing.token_avg_amount = result.token_avg_amount
@@ -69,7 +73,13 @@ def _score_and_persist(
         existing.has_load_spike = result.has_load_spike
         existing.geographic_score = result.geographic_score
         existing.token_score = result.token_score
+        existing.monthly_kwh_equity_score = result.monthly_kwh_equity_score
+        existing.location_equity_score = result.location_equity_score
+        existing.load_profile_score = result.load_profile_score
         existing.consumption_score = result.consumption_score
+        existing.location_type = result.location_type
+        existing.location_subcounty = result.location_subcounty
+        existing.geo_layer_fingerprint = result.geo_layer_fingerprint
         existing.equity_score = result.equity_score
         existing.classification = Classification(result.classification)
         existing.suggested_tariff_multiplier = result.suggested_tariff_multiplier
@@ -78,7 +88,6 @@ def _score_and_persist(
 
         audit_action = "RECLASSIFIED"
     else:
-        # Create new record
         db_result = EquityResult(
             account_id_hash=result.account_id_hash,
             county=result.county,
@@ -90,7 +99,13 @@ def _score_and_persist(
             has_load_spike=result.has_load_spike,
             geographic_score=result.geographic_score,
             token_score=result.token_score,
+            monthly_kwh_equity_score=result.monthly_kwh_equity_score,
+            location_equity_score=result.location_equity_score,
+            load_profile_score=result.load_profile_score,
             consumption_score=result.consumption_score,
+            location_type=result.location_type,
+            location_subcounty=result.location_subcounty,
+            geo_layer_fingerprint=result.geo_layer_fingerprint,
             equity_score=result.equity_score,
             classification=Classification(result.classification),
             suggested_tariff_multiplier=result.suggested_tariff_multiplier,
@@ -99,7 +114,6 @@ def _score_and_persist(
         db.add(db_result)
         audit_action = "SCORE_CALCULATED"
 
-    # Log to audit trail
     audit_entry = AuditTrail(
         account_id_hash=result.account_id_hash,
         action=audit_action,
@@ -108,12 +122,12 @@ def _score_and_persist(
             "classification": result.classification,
             "tariff_multiplier": result.suggested_tariff_multiplier,
             "flags": result.flags,
+            "explanation": explanation,
         }),
     )
     db.add(audit_entry)
     db.commit()
 
-    # Build response
     return EquityScoreResponse(
         account_id_hash=result.account_id_hash,
         county=result.county,
@@ -124,8 +138,45 @@ def _score_and_persist(
         signal_breakdown=SignalBreakdown(
             geographic_score=result.geographic_score,
             token_score=result.token_score,
+            monthly_kwh_equity_score=result.monthly_kwh_equity_score,
+            location_equity_score=result.location_equity_score,
             consumption_score=result.consumption_score,
         ),
+        explanation=explanation,
+    )
+
+
+def _result_record_from_orm(r: EquityResult) -> ResultRecord:
+    hydrated = equity_orm_to_scoring_result(r)
+    return ResultRecord(
+        id=r.id,
+        account_id_hash=r.account_id_hash,
+        county=r.county,
+        poverty_index=r.poverty_index,
+        token_avg_amount=r.token_avg_amount,
+        token_frequency=r.token_frequency,
+        total_kwh=r.total_kwh,
+        peak_load_kw=r.peak_load_kw,
+        has_load_spike=r.has_load_spike,
+        geographic_score=r.geographic_score,
+        token_score=r.token_score,
+        monthly_kwh_equity_score=float(
+            getattr(r, "monthly_kwh_equity_score", None) or 0.0
+        ),
+        location_equity_score=float(getattr(r, "location_equity_score", None) or 0.0),
+        load_profile_score=float(
+            getattr(r, "load_profile_score", None) or r.consumption_score
+        ),
+        consumption_score=r.consumption_score,
+        location_type=getattr(r, "location_type", None) or "county_aggregate",
+        location_subcounty=getattr(r, "location_subcounty", None),
+        geo_layer_fingerprint=getattr(r, "geo_layer_fingerprint", None),
+        equity_score=r.equity_score,
+        classification=r.classification.value,
+        suggested_tariff_multiplier=r.suggested_tariff_multiplier,
+        flags=json.loads(r.flags) if r.flags else [],
+        explanation=explain_score(hydrated),
+        created_at=r.created_at,
     )
 
 
@@ -162,7 +213,6 @@ def score_batch(
         result = _score_and_persist(account, db)
         results.append(result)
 
-    # Build summary
     summary = {"GREEN": 0, "YELLOW": 0, "RED": 0}
     for r in results:
         summary[r.classification] += 1
@@ -218,28 +268,7 @@ def list_results(
         total=total,
         page=page,
         per_page=per_page,
-        results=[
-            ResultRecord(
-                id=r.id,
-                account_id_hash=r.account_id_hash,
-                county=r.county,
-                poverty_index=r.poverty_index,
-                token_avg_amount=r.token_avg_amount,
-                token_frequency=r.token_frequency,
-                total_kwh=r.total_kwh,
-                peak_load_kw=r.peak_load_kw,
-                has_load_spike=r.has_load_spike,
-                geographic_score=r.geographic_score,
-                token_score=r.token_score,
-                consumption_score=r.consumption_score,
-                equity_score=r.equity_score,
-                classification=r.classification.value,
-                suggested_tariff_multiplier=r.suggested_tariff_multiplier,
-                flags=json.loads(r.flags) if r.flags else [],
-                created_at=r.created_at,
-            )
-            for r in results
-        ],
+        results=[_result_record_from_orm(r) for r in results],
     )
 
 
@@ -266,25 +295,7 @@ def get_result(
             detail=f"No result found for account hash: {account_hash}",
         )
 
-    return ResultRecord(
-        id=result.id,
-        account_id_hash=result.account_id_hash,
-        county=result.county,
-        poverty_index=result.poverty_index,
-        token_avg_amount=result.token_avg_amount,
-        token_frequency=result.token_frequency,
-        total_kwh=result.total_kwh,
-        peak_load_kw=result.peak_load_kw,
-        has_load_spike=result.has_load_spike,
-        geographic_score=result.geographic_score,
-        token_score=result.token_score,
-        consumption_score=result.consumption_score,
-        equity_score=result.equity_score,
-        classification=result.classification.value,
-        suggested_tariff_multiplier=result.suggested_tariff_multiplier,
-        flags=json.loads(result.flags) if result.flags else [],
-        created_at=result.created_at,
-    )
+    return _result_record_from_orm(result)
 
 
 @router.get(
@@ -308,7 +319,6 @@ def get_stats(
             counties_covered=0,
         )
 
-    # Classification counts
     counts = (
         db.query(EquityResult.classification, func.count(EquityResult.id))
         .group_by(EquityResult.classification)
@@ -318,17 +328,14 @@ def get_stats(
     for cls, count in counts:
         classification_counts[cls.value] = count
 
-    # Average score
     avg_score = db.query(func.avg(EquityResult.equity_score)).scalar() or 0.0
 
-    # Turkana exceptions
     turkana_count = (
         db.query(EquityResult)
         .filter(EquityResult.flags.contains("TURKANA_EXCEPTION"))
         .count()
     )
 
-    # Counties covered
     county_count = db.query(func.count(func.distinct(EquityResult.county))).scalar() or 0
 
     return StatsResponse(
@@ -352,12 +359,11 @@ def health_check(
     """Health check endpoint."""
     settings = get_settings()
 
-    # Test database connectivity
     try:
         db.execute(func.now() if not settings.DATABASE_URL.startswith("sqlite") else db.query(EquityResult).limit(0).subquery().select())
         db_status = "connected"
     except Exception:
-        db_status = "connected"  # SQLite will work if we got this far
+        db_status = "connected"
 
     return HealthResponse(
         status="healthy",
