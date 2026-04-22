@@ -9,6 +9,7 @@ import AlertsPage from './pages/AlertsPage';
 import PolicySimulatorPage from './pages/PolicySimulatorPage';
 import AccountLookupPage from './pages/AccountLookupPage';
 import MethodologyPage from './pages/MethodologyPage';
+import HouseholdReportPage from './pages/HouseholdReportPage';
 
 function AppShell() {
   const [mobileNav, setMobileNav] = useState(false);
@@ -25,6 +26,8 @@ function AppShell() {
           <Route path="/simulator" element={<PolicySimulatorPage />} />
           <Route path="/lookup" element={<AccountLookupPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
+          <Route path="/my-energy-report" element={<HouseholdReportPage />} />
+          <Route path="/household/:accountHash" element={<HouseholdReportPage />} />
         </Routes>
       </main>
     </div>

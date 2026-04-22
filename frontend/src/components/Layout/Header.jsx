@@ -8,12 +8,17 @@ const pageTitles = {
   '/simulator': 'Policy Simulator',
   '/lookup': 'Account Lookup',
   '/methodology': 'How AI Works',
+  '/my-energy-report': 'My Energy Report',
 };
+
+const householdMatch = /^\/household\//;
 
 export default function Header({ onMenu }) {
   const location = useLocation();
   const { stats } = useSyntheticData();
-  const title = pageTitles[location.pathname] || 'EquityGrid Kenya';
+  const title = householdMatch.test(location.pathname)
+    ? 'My Energy Report'
+    : pageTitles[location.pathname] || 'EquityGrid Kenya';
 
   return (
     <header className="fixed top-0 left-0 lg:left-[260px] right-0 h-16 bg-surface border-b border-border flex items-center justify-between px-4 md:px-8 z-30">

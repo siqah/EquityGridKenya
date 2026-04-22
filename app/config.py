@@ -20,52 +20,40 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database — SQLite for local dev, swap to PostgreSQL URI for production
-    # e.g. "postgresql://user:pass@localhost:5432/equitygrid"
     DATABASE_URL: str = "sqlite:///./equitygrid.db"
 
-    # Scoring Engine Weights (must sum to 1.0)
-    # Poverty index (Variable 5) — KNBS / WB county headcount
-    WEIGHT_GEOGRAPHIC: float = 0.25
-    # Token purchase pattern
-    WEIGHT_TOKEN: float = 0.30
-    # Variable 1 — monthly kWh lifeline vs high-consumption band (capped influence)
-    WEIGHT_MONTHLY_KWH: float = 0.10
-    # Variable 2 — KNBS-linked location type (hashed geospatial layer)
-    WEIGHT_LOCATION: float = 0.10
-    # Peak load / luxury appliance spike signal (residual consumption layer)
-    WEIGHT_LOAD_PROFILE: float = 0.25
+    # Six-variable model weights (must sum to 1.0)
+    WEIGHT_CONSUMPTION_PER_CAPITA: float = 0.25
+    WEIGHT_PAYMENT_CONSISTENCY: float = 0.22
+    WEIGHT_NSPS: float = 0.18
+    WEIGHT_PEAK_DEMAND_RATIO: float = 0.15
+    WEIGHT_UPGRADE_HISTORY: float = 0.12
+    WEIGHT_ACTIVE_ACCOUNTS: float = 0.08
 
-    # Pepper for geographic-layer coordinate hashing (set in production)
-    GEOSPATIAL_LAYER_PEPPER: str = ""
+    # National benchmark (kWh per person per month) for capita proxy
+    NATIONAL_CAPITA_BENCHMARK_KWH: float = 22.0
 
-    # Classification Thresholds
-    THRESHOLD_GREEN: float = 70.0   # Score >= 70 → GREEN (subsidize)
-    THRESHOLD_YELLOW: float = 40.0  # Score >= 40 → YELLOW (standard)
-    # Score < 40 → RED (luxury/anomaly)
+    # Classification on final score (higher = more affluent / cross-subsidy risk)
+    SCORE_MAX_GREEN: float = 40.0   # score <= this → GREEN
+    SCORE_MAX_YELLOW: float = 70.0  # score <= this → YELLOW; else RED
 
     # Tariff Multipliers
     TARIFF_GREEN: float = 0.60
     TARIFF_YELLOW: float = 1.00
     TARIFF_RED: float = 1.40
 
-    # Load Spike Detection
-    LOAD_SPIKE_THRESHOLD_KW: float = 5.0
-    HIGH_CONSUMPTION_KWH: float = 200.0
-
     @model_validator(mode="after")
     def _weights_sum_to_one(self) -> "Settings":
         total = (
-            self.WEIGHT_GEOGRAPHIC
-            + self.WEIGHT_TOKEN
-            + self.WEIGHT_MONTHLY_KWH
-            + self.WEIGHT_LOCATION
-            + self.WEIGHT_LOAD_PROFILE
+            self.WEIGHT_CONSUMPTION_PER_CAPITA
+            + self.WEIGHT_PAYMENT_CONSISTENCY
+            + self.WEIGHT_NSPS
+            + self.WEIGHT_PEAK_DEMAND_RATIO
+            + self.WEIGHT_UPGRADE_HISTORY
+            + self.WEIGHT_ACTIVE_ACCOUNTS
         )
         if abs(total - 1.0) > 1e-5:
-            raise ValueError(
-                "Scoring weights must sum to 1.0; "
-                f"got {total} from geographic+token+monthly_kwh+location+load_profile."
-            )
+            raise ValueError(f"Six scoring weights must sum to 1.0; got {total}.")
         return self
 
     model_config = {

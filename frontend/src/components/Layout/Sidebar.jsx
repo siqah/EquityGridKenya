@@ -6,6 +6,7 @@ const navItems = [
   { path: '/alerts', label: 'Anomaly Alerts', icon: '🚨' },
   { path: '/simulator', label: 'Policy Simulator', icon: '⚖️' },
   { path: '/lookup', label: 'Account Lookup', icon: '🔎' },
+  { path: '/my-energy-report', label: 'My Energy Report', icon: '🏠' },
   { path: '/methodology', label: 'How AI Works', icon: '🧠' },
 ];
 

@@ -14,25 +14,25 @@ function flagStyle(flag) {
 
 function explainRed(account) {
   if (account.flags?.includes('LUXURY_IN_POVERTY_ZONE')) {
-    return 'High draw and liquidity signals sit inside one of Kenya’s poorest counties — classic cross-subsidy leakage.';
+    return 'High use per person and strong connection signals sit inside one of Kenya’s poorest counties — classic cross-subsidy leakage.';
   }
   if (account.flags?.includes('THRESHOLD_GAMING')) {
     return 'Consumption hugs subsidy thresholds month after month — statistically rare for genuine vulnerability.';
   }
   if (account.flags?.includes('LANDLORD_PATTERN') || account.flags?.some((f) => f.includes('MULTI_ACCOUNT'))) {
-    return 'Meter cluster resembles landlord or multi-unit billing — capacity is aggregated but billed like a single household.';
+    return 'Several meters at one address and high capacity resemble landlord or multi-unit billing.';
   }
   if (account.flags?.includes('LUXURY_APPLIANCE_DETECTED')) {
-    return 'Peak demand and kWh bands line up with simultaneous heavy appliances, not lifeline baseload.';
+    return 'Evening load shape and capacity line up with heavy discretionary use, not lifeline baseload.';
   }
-  return 'Overall RED profile: above-benchmark consumption and liquidity versus declared vulnerability band.';
+  return 'Overall RED profile: higher equity score with stronger capacity signals than a lifeline household.';
 }
 
 export default function AlertsPage() {
   const { accounts, stats } = useSyntheticData();
 
   const reds = useMemo(
-    () => accounts.filter((a) => a.classification === 'RED').sort((a, b) => b.score - a.score),
+    () => accounts.filter((a) => a.classification === 'RED').sort((a, b) => b.final_score - a.final_score),
     [accounts],
   );
 
@@ -61,7 +61,7 @@ export default function AlertsPage() {
               return (
                 <div key={a.account_hash} className="card p-4 flex flex-col gap-2">
                   <div className="font-mono text-xs font-bold text-primary">{a.account_hash}</div>
-                  <div className="text-2xl font-extrabold text-tier-red">{a.score}</div>
+                  <div className="text-2xl font-extrabold text-tier-red">{a.final_score}</div>
                   <div className="text-xs text-muted">{a.county}</div>
                   <div className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-bold w-fit ${flagStyle(primary)}`}>
                     {primary}
@@ -93,9 +93,9 @@ export default function AlertsPage() {
                   <th>Score</th>
                   <th>Tariff</th>
                   <th>kWh / month</th>
-                  <th>Peak kW</th>
-                  <th>Token avg</th>
-                  <th>Poverty index</th>
+                  <th>Peak ratio</th>
+                  <th>Three-phase</th>
+                  <th>Meters @ address</th>
                   <th>Flags</th>
                 </tr>
               </thead>
@@ -104,12 +104,12 @@ export default function AlertsPage() {
                   <tr key={r.account_hash}>
                     <td className="font-mono text-xs font-semibold text-body">{r.account_hash}</td>
                     <td className="text-sm max-w-[220px] truncate">{r.county}</td>
-                    <td className="font-mono font-bold text-tier-red">{r.score}</td>
+                    <td className="font-mono font-bold text-tier-red">{r.final_score}</td>
                     <td className="font-semibold text-tier-red">{r.tariff}×</td>
                     <td className="text-sm">{r.kwh_month}</td>
-                    <td className="text-sm">{r.peak_kw}</td>
-                    <td className="text-sm">KSh {r.token_avg_ksh}</td>
-                    <td className="text-sm">{r.poverty_index}</td>
+                    <td className="text-sm font-mono">{r.peak_demand_ratio}</td>
+                    <td className="text-sm">{r.has_three_phase ? 'Yes' : 'No'}</td>
+                    <td className="text-sm">{r.accounts_same_address}</td>
                     <td className="text-xs">
                       <div className="flex flex-wrap gap-1">
                         {(r.flags || []).map((f) => (

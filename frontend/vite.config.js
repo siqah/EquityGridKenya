@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: ['maplibre-gl', '@deck.gl/react', '@deck.gl/mapbox', '@deck.gl/layers', '@deck.gl/aggregation-layers'],
+  },
   server: {
     port: 5173,
     proxy: {

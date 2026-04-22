@@ -1,5 +1,5 @@
 import PageFade from '../components/Layout/PageFade';
-import KenyaCountyMap from '../components/Map/KenyaCountyMap';
+import KenyaDeckMap from '../components/Map/KenyaDeckMap';
 import { useSyntheticData } from '../context/SyntheticDataContext';
 import {
   ResponsiveContainer,
@@ -98,13 +98,29 @@ export default function VitalsPage() {
         <StatCard
           label="National subsidy efficiency score"
           value={`${stats.efficiencyScore}%`}
-          detail="Of every KSh 100 in subsidies, this share reaches households with genuinely high poverty signals in the cohort."
+          detail="Share of GREEN households that are verified NSPS beneficiaries in the synthetic cohort (illustrative reach metric)."
           variant="hero"
         />
       </div>
 
+      <div className="card p-5 mb-6 border-primary/15 bg-navactive/30">
+        <div className="text-sm font-bold text-primary mb-2">Equity model — six variables (weights)</div>
+        <p className="text-xs text-muted mb-3 leading-relaxed">
+          Final score is 0–100 (higher = stronger affluence / cross-subsidy risk). Urban / rural appears on accounts for
+          context only and is not part of the weighted score.
+        </p>
+        <ul className="text-sm text-body space-y-1.5 list-disc pl-5">
+          <li>Consumption per capita proxy — 25%</li>
+          <li>Payment consistency — 22%</li>
+          <li>NSPS registration status — 18%</li>
+          <li>Peak demand ratio — 15%</li>
+          <li>Upgrade history — 12%</li>
+          <li>Active accounts at address — 8%</li>
+        </ul>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
-        <KenyaCountyMap countyAgg={stats.countyAgg} />
+        <KenyaDeckMap />
         <div className="card flex flex-col min-h-[420px]">
           <div className="px-5 py-4 border-b border-border">
             <span className="text-sm font-semibold text-primary">Classification mix</span>
