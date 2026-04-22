@@ -1,63 +1,93 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
-export default function Sidebar() {
-  const location = useLocation();
+const navItems = [
+  { path: '/', label: 'Vitals Overview', icon: '📊' },
+  { path: '/accounts', label: 'Account Intelligence', icon: '🔍' },
+  { path: '/alerts', label: 'Anomaly Alerts', icon: '🚨' },
+  { path: '/simulator', label: 'Policy Simulator', icon: '⚖️' },
+  { path: '/lookup', label: 'Account Lookup', icon: '🔎' },
+  { path: '/methodology', label: 'How AI Works', icon: '🧠' },
+];
 
-  const navItems = [
-    { path: '/', label: 'Vitals Overview', icon: '📊' },
-    { path: '/accounts', label: 'Account Intelligence', icon: '🔍' },
-    { path: '/alerts', label: 'Anomaly Alerts', icon: '🚨' },
-  ];
+export default function Sidebar({ mobileOpen, onClose }) {
+  const linkClass = ({ isActive }) =>
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border-l-[3px] transition-colors no-underline ${
+      isActive
+        ? 'bg-navactive text-primary border-primary'
+        : 'border-transparent text-body hover:bg-surface-muted text-muted hover:text-body'
+    }`;
+
+  const nav = (
+    <>
+      <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
+        Dashboard
+      </div>
+      {navItems.map((item) => (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          end={item.path === '/'}
+          className={linkClass}
+          onClick={() => onClose?.()}
+        >
+          <span className="text-lg w-7 text-center shrink-0" aria-hidden>
+            {item.icon}
+          </span>
+          <span>{item.label}</span>
+        </NavLink>
+      ))}
+      <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
+        External
+      </div>
+      <a
+        href="http://127.0.0.1:8000/docs"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline border-l-[3px] border-transparent"
+        onClick={() => onClose?.()}
+      >
+        <span className="text-lg w-7 text-center shrink-0">📡</span>
+        <span>API Docs</span>
+      </a>
+    </>
+  );
 
   return (
-    <aside className="fixed top-0 left-0 w-[260px] h-screen bg-gradient-to-b from-navy-800 to-navy-900 border-r border-glass flex flex-col z-50 overflow-y-auto">
-      {/* Brand */}
-      <div className="p-[20px] px-[22px] border-b border-glass flex items-center gap-[12px]">
-        <div className="w-[38px] h-[38px] rounded-md bg-gradient-to-br from-green-subsidy to-cyan-accent flex items-center justify-center text-[18px] font-extrabold text-navy-900 shrink-0">⚡</div>
-        <div className="flex flex-col">
-          <span className="text-[15px] font-bold text-slate-50 tracking-[-0.3px] leading-[1.2]">EquityGrid Kenya</span>
-          <span className="text-[10px] font-medium text-slate-400 uppercase tracking-[1.5px]">Energy Intelligence</span>
+    <>
+      {mobileOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
+          aria-label="Close menu"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-screen w-[260px] bg-surface border-r border-border flex flex-col overflow-y-auto transition-transform duration-200 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 lg:flex`}
+      >
+        <div className="p-5 border-b border-border flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center text-lg font-bold shrink-0">
+            EG
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[15px] font-bold text-primary leading-tight truncate">
+              EquityGrid Kenya
+            </span>
+            <span className="text-[11px] font-medium text-muted uppercase tracking-wide">
+              Energy intelligence
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="p-4 px-3 flex-1">
-        <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-[1.8px] px-3 pt-4 pb-2">Dashboard</div>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-[12px] px-[12px] py-[10px] rounded-md text-[13.5px] transition-all duration-150 cursor-pointer no-underline mb-[2px] ${isActive ? 'text-cyan-accent bg-cyan-accent-dim font-semibold' : 'text-slate-400 font-medium hover:text-slate-100 hover:bg-[rgba(0,58,117,0.3)]'}`
-            }
-            end={item.path === '/'}
-          >
-            <span className="text-[17px] w-[22px] text-center shrink-0">{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        <nav className="p-3 flex-1 flex flex-col gap-0.5">{nav}</nav>
 
-        <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-[1.8px] px-3 pt-4 pb-2 mt-4">
-          External
+        <div className="p-4 px-5 border-t border-border text-[11px] text-muted leading-relaxed">
+          <div className="font-semibold text-primary text-xs mb-1">EPRA</div>
+          <p>Built for EPRA Hackathon 2026</p>
         </div>
-        <a
-          href="http://localhost:8000/docs"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-[12px] px-[12px] py-[10px] rounded-md text-[13.5px] text-slate-400 font-medium hover:text-slate-100 hover:bg-[rgba(0,58,117,0.3)] transition-all duration-150 mb-[2px] cursor-pointer no-underline"
-        >
-          <span className="text-[17px] w-[22px] text-center shrink-0">📡</span>
-          <span>API Docs</span>
-        </a>
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 px-[22px] border-t border-glass">
-        <div className="flex items-center gap-[8px] text-[11px] text-slate-500">
-          <span className="w-[7px] h-[7px] rounded-full bg-green-subsidy shadow-glow-green animate-pulse-dot"></span>
-          <span>FastAPI Engine Connected</span>
-        </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -1,34 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { SyntheticDataProvider } from './context/SyntheticDataContext';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import VitalsPage from './pages/VitalsPage';
 import AccountsPage from './pages/AccountsPage';
 import AlertsPage from './pages/AlertsPage';
-import { fetchStats } from './api/equityApi';
+import PolicySimulatorPage from './pages/PolicySimulatorPage';
+import AccountLookupPage from './pages/AccountLookupPage';
+import MethodologyPage from './pages/MethodologyPage';
 
-export default function App() {
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    fetchStats()
-      .then(setStats)
-      .catch(err => console.error('Failed to load stats:', err));
-  }, []);
+function AppShell() {
+  const [mobileNav, setMobileNav] = useState(false);
 
   return (
-    <BrowserRouter>
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <Header stats={stats} />
-        <main className="flex-1 ml-[260px] pt-[64px] min-h-screen">
-          <Routes>
-            <Route path="/" element={<VitalsPage />} />
-            <Route path="/accounts" element={<AccountsPage />} />
-            <Route path="/alerts" element={<AlertsPage />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+    <div className="flex min-h-screen bg-surface-muted">
+      <Sidebar mobileOpen={mobileNav} onClose={() => setMobileNav(false)} />
+      <Header onMenu={() => setMobileNav(true)} />
+      <main className="flex-1 pt-16 min-h-screen lg:ml-[260px] w-full min-w-0">
+        <Routes>
+          <Route path="/" element={<VitalsPage />} />
+          <Route path="/accounts" element={<AccountsPage />} />
+          <Route path="/alerts" element={<AlertsPage />} />
+          <Route path="/simulator" element={<PolicySimulatorPage />} />
+          <Route path="/lookup" element={<AccountLookupPage />} />
+          <Route path="/methodology" element={<MethodologyPage />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <SyntheticDataProvider>
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </SyntheticDataProvider>
   );
 }
