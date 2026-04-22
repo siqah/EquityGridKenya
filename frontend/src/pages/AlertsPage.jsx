@@ -1,100 +1,135 @@
-import { useState, useEffect } from 'react';
-import { fetchResults } from '../api/equityApi';
-import TurkanaAlertPanel from '../components/Dashboard/TurkanaAlertPanel';
+import { useMemo } from 'react';
+import PageFade from '../components/Layout/PageFade';
+import { useSyntheticData } from '../context/SyntheticDataContext';
+
+function flagStyle(flag) {
+  if (flag === 'LUXURY_IN_POVERTY_ZONE') return 'bg-purple-50 text-purple-800 border-purple-200';
+  if (flag === 'LUXURY_APPLIANCE_DETECTED') return 'bg-red-50 text-tier-red border-red-200';
+  if (flag === 'LANDLORD_PATTERN') return 'bg-orange-50 text-orange-800 border-orange-200';
+  if (flag === 'THRESHOLD_GAMING') return 'bg-amber-50 text-amber-900 border-amber-200';
+  if (flag.startsWith('MULTI_ACCOUNT')) return 'bg-red-950/10 text-red-950 border-red-900/30';
+  if (flag === 'UPGRADE_HISTORY') return 'bg-slate-100 text-slate-800 border-slate-200';
+  return 'bg-surface-muted text-body border-border';
+}
+
+function explainRed(account) {
+  if (account.flags?.includes('LUXURY_IN_POVERTY_ZONE')) {
+    return 'High draw and liquidity signals sit inside one of Kenya’s poorest counties — classic cross-subsidy leakage.';
+  }
+  if (account.flags?.includes('THRESHOLD_GAMING')) {
+    return 'Consumption hugs subsidy thresholds month after month — statistically rare for genuine vulnerability.';
+  }
+  if (account.flags?.includes('LANDLORD_PATTERN') || account.flags?.some((f) => f.includes('MULTI_ACCOUNT'))) {
+    return 'Meter cluster resembles landlord or multi-unit billing — capacity is aggregated but billed like a single household.';
+  }
+  if (account.flags?.includes('LUXURY_APPLIANCE_DETECTED')) {
+    return 'Peak demand and kWh bands line up with simultaneous heavy appliances, not lifeline baseload.';
+  }
+  return 'Overall RED profile: above-benchmark consumption and liquidity versus declared vulnerability band.';
+}
 
 export default function AlertsPage() {
-  const [redResults, setRedResults] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { accounts, stats } = useSyntheticData();
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const data = await fetchResults({ classification: 'RED', per_page: 100 });
-        setRedResults(data.results || []);
-      } catch (err) {
-        console.error('Failed to load alerts:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  const reds = useMemo(
+    () => accounts.filter((a) => a.classification === 'RED').sort((a, b) => b.score - a.score),
+    [accounts],
+  );
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-16 text-slate-500">
-        <div className="w-9 h-9 border-4 border-glass border-t-cyan-accent rounded-full animate-spin mb-4"></div>
-        <div className="text-[13px] font-medium">Scanning for anomalies…</div>
-      </div>
-    );
-  }
-
-  const turkanaExceptions = redResults.filter(r => r.flags && r.flags.includes('TURKANA_EXCEPTION'));
+  const priority = reds.slice(0, 5);
 
   return (
-    <div className="p-7 max-w-[1440px] mx-auto">
-      <div className="mb-7 animate-[fadeIn_0.5s_ease-out]">
-        <h2 className="text-2xl font-extrabold text-slate-50 tracking-[-0.5px] mb-1">Anomaly Alerts</h2>
-        <p className="text-[13.5px] text-slate-400">
-          {redResults.length} RED classifications detected
-          {turkanaExceptions.length > 0 && (
-            <span className="text-red-luxury ml-1">
-              {' · '}{turkanaExceptions.length} Turkana Exception overrides
-            </span>
-          )}
+    <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto">
+      <div className="mb-6">
+        <p className="text-lg font-semibold text-body">
+          {reds.length} RED classifications detected — estimated{' '}
+          <span className="text-tier-red">KSh {stats.leakageDetected.toLocaleString()}</span> in annual leakage (model)
+        </p>
+        <p className="text-sm text-muted mt-1">
+          Synthetic fraud / luxury layer — use Policy Simulator to test how fees recover this pool.
         </p>
       </div>
 
-      <TurkanaAlertPanel results={redResults} />
+      <div className="mb-6">
+        <h2 className="text-sm font-bold text-primary mb-3">Priority cases</h2>
+        {priority.length === 0 ? (
+          <div className="card p-6 text-sm text-muted">No RED accounts in the current dataset.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+            {priority.map((a) => {
+              const primary = a.flags?.[0] || 'LUXURY_APPLIANCE_DETECTED';
+              return (
+                <div key={a.account_hash} className="card p-4 flex flex-col gap-2">
+                  <div className="font-mono text-xs font-bold text-primary">{a.account_hash}</div>
+                  <div className="text-2xl font-extrabold text-tier-red">{a.score}</div>
+                  <div className="text-xs text-muted">{a.county}</div>
+                  <div className={`inline-flex px-2 py-1 rounded-full border text-[10px] font-bold w-fit ${flagStyle(primary)}`}>
+                    {primary}
+                  </div>
+                  <p className="text-xs text-muted leading-snug">{explainRed(a)}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-      <div className="glass-window overflow-hidden mt-6 animate-[fadeIn_0.5s_ease-out_0.2s_both]">
-        <div className="px-5 py-4 border-b border-glass flex items-center justify-between bg-[rgba(0,43,86,0.3)]">
-          <span className="text-[13px] font-semibold text-slate-300 uppercase tracking-widest">🔴 All Red Classifications — Luxury & Cross-Subsidy Contributors</span>
-          <span className="text-[11px] text-slate-500">{redResults.length} accounts</span>
+      <div className="card overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <span className="text-sm font-semibold text-primary">All RED accounts</span>
+          <span className="text-xs text-muted">{reds.length} rows</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="table-glass">
-            <thead>
-              <tr>
-                <th>Account Hash</th>
-                <th>County</th>
-                <th>Score</th>
-                <th>Tariff</th>
-                <th>kWh / Month</th>
-                <th>Peak Load (kW)</th>
-                <th>Token Avg</th>
-                <th>Poverty Index</th>
-                <th>Flags</th>
-              </tr>
-            </thead>
-            <tbody>
-              {redResults.map(r => (
-                <tr key={r.account_id_hash}>
-                  <td className="font-mono text-[11px] text-slate-500">{r.account_id_hash.substring(0, 16)}…</td>
-                  <td>{r.county}</td>
-                  <td className="font-mono font-bold text-red-luxury">{r.equity_score.toFixed(1)}</td>
-                  <td className="font-bold text-red-luxury">{r.suggested_tariff_multiplier}×</td>
-                  <td>{r.total_kwh.toFixed(1)}</td>
-                  <td>
-                    {r.peak_load_kw.toFixed(1)}
-                    {r.has_load_spike && <span className="ml-1.5 text-xs">⚡</span>}
-                  </td>
-                  <td>KSh {r.token_avg_amount.toFixed(0)}</td>
-                  <td>{r.poverty_index}</td>
-                  <td>
-                    {r.flags && r.flags.includes('TURKANA_EXCEPTION') ? (
-                      <span className="bg-red-luxury/15 text-red-luxury px-2 py-0.5 rounded-full text-[10px] font-bold">🚨 TURKANA</span>
-                    ) : (
-                      <span className="text-slate-500 text-[10px]">LUXURY</span>
-                    )}
-                  </td>
+          {reds.length === 0 ? (
+            <div className="p-10 text-center text-sm text-muted">
+              No anomalies to display — the synthetic generator may need a refresh.
+            </div>
+          ) : (
+            <table className="table-pro min-w-[980px]">
+              <thead>
+                <tr>
+                  <th>Account hash</th>
+                  <th>County</th>
+                  <th>Score</th>
+                  <th>Tariff</th>
+                  <th>kWh / month</th>
+                  <th>Peak kW</th>
+                  <th>Token avg</th>
+                  <th>Poverty index</th>
+                  <th>Flags</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {reds.map((r) => (
+                  <tr key={r.account_hash}>
+                    <td className="font-mono text-xs font-semibold text-body">{r.account_hash}</td>
+                    <td className="text-sm max-w-[220px] truncate">{r.county}</td>
+                    <td className="font-mono font-bold text-tier-red">{r.score}</td>
+                    <td className="font-semibold text-tier-red">{r.tariff}×</td>
+                    <td className="text-sm">{r.kwh_month}</td>
+                    <td className="text-sm">{r.peak_kw}</td>
+                    <td className="text-sm">KSh {r.token_avg_ksh}</td>
+                    <td className="text-sm">{r.poverty_index}</td>
+                    <td className="text-xs">
+                      <div className="flex flex-wrap gap-1">
+                        {(r.flags || []).map((f) => (
+                          <span
+                            key={f}
+                            className={`inline-flex px-2 py-0.5 rounded-full border font-semibold ${flagStyle(f)}`}
+                          >
+                            {f}
+                          </span>
+                        ))}
+                        {(!r.flags || r.flags.length === 0) && <span className="text-muted">—</span>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
-    </div>
+    </PageFade>
   );
 }
