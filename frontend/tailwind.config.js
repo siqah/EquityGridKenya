@@ -17,8 +17,8 @@ export default {
         },
         surface: {
           DEFAULT: '#FFFFFF',
-          muted: '#F9FAFB',
         },
+        'surface-muted': '#F9FAFB',
         border: {
           DEFAULT: '#E5E7EB',
         },
