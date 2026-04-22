@@ -1,134 +1,169 @@
-import { useState, useEffect } from 'react';
-import KPICard from '../components/Dashboard/KPICard';
-import ClassificationChart from '../components/Dashboard/ClassificationChart';
-import ScoreDistribution from '../components/Dashboard/ScoreDistribution';
-import TurkanaAlertPanel from '../components/Dashboard/TurkanaAlertPanel';
-import SignalBreakdown from '../components/Dashboard/SignalBreakdown';
-import { fetchStats, fetchResults } from '../api/equityApi';
+import PageFade from '../components/Layout/PageFade';
+import KenyaCountyMap from '../components/Map/KenyaCountyMap';
+import { useSyntheticData } from '../context/SyntheticDataContext';
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from 'recharts';
 
-/**
- * Vitals Overview — Landing page with KPI cards, charts, and anomaly alerts.
- */
+const COLORS = { GREEN: '#16A34A', YELLOW: '#D97706', RED: '#DC2626' };
+
+function StatCard({ label, value, detail, variant = 'default' }) {
+  const base =
+    variant === 'hero'
+      ? 'bg-primary text-white border-primary md:min-h-[168px] md:flex md:flex-col md:justify-center'
+      : 'bg-surface border-border text-body';
+  return (
+    <div
+      className={`rounded-xl border p-5 shadow-card ${base} ${
+        variant === 'hero' ? 'md:col-span-1 md:row-span-1 ring-1 ring-primary/10' : ''
+      }`}
+    >
+      <div
+        className={`text-[11px] font-semibold uppercase tracking-wide mb-2 ${
+          variant === 'hero' ? 'text-white/80' : 'text-muted'
+        }`}
+      >
+        {label}
+      </div>
+      <div className={`font-extrabold tracking-tight ${variant === 'hero' ? 'text-4xl md:text-5xl' : 'text-2xl'}`}>
+        {value}
+      </div>
+      <div className={`text-xs mt-2 leading-snug ${variant === 'hero' ? 'text-white/90' : 'text-muted'}`}>
+        {detail}
+      </div>
+    </div>
+  );
+}
+
 export default function VitalsPage() {
-  const [stats, setStats] = useState(null);
-  const [allResults, setAllResults] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { stats } = useSyntheticData();
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const [statsData, resultsData] = await Promise.all([
-          fetchStats(),
-          fetchResults({ per_page: 100 }),
-        ]);
-        setStats(statsData);
-        setAllResults(resultsData.results || []);
-      } catch (err) {
-        console.error('Failed to load data:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  const donutData = [
+    { name: 'Green', value: stats.classification_counts.GREEN, key: 'GREEN' },
+    { name: 'Yellow', value: stats.classification_counts.YELLOW, key: 'YELLOW' },
+    { name: 'Red', value: stats.classification_counts.RED, key: 'RED' },
+  ];
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-16 text-slate-500">
-        <div className="w-9 h-9 border-4 border-glass border-t-cyan-accent rounded-full animate-spin mb-4"></div>
-        <div className="text-[13px] font-medium">Loading equity intelligence…</div>
-      </div>
-    );
-  }
+  const leakageBars = (stats.topLeakageCounties || []).map((c) => ({
+    name: c.name.length > 12 ? `${c.name.slice(0, 11)}…` : c.name,
+    leakage: Math.round(c.leakageScore),
+  }));
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center p-16 text-slate-500">
-        <div className="text-[32px] mb-3">⚠️</div>
-        <div className="text-[13px] font-medium text-red-400">
-          Failed to connect to EquityGrid API
-        </div>
-        <div className="text-xs text-slate-500 mt-2">
-          Ensure FastAPI is running: <code className="bg-navy-800 px-2 py-1 rounded">uvicorn app.main:app --port 8000</code>
-        </div>
-      </div>
-    );
-  }
-
-  // Compute KPI values
-  const greenCount = stats?.classification_counts?.GREEN || 0;
-  const redCount = stats?.classification_counts?.RED || 0;
-  const totalAccounts = stats?.total_accounts || 0;
-
-  // Estimated subsidy savings (GREEN accounts × avg 0.4 reduction × avg KSh 500/mo)
-  const subsidyManaged = greenCount * 500 * 0.4;
-
-  // Estimated leakage detected (RED accounts × avg excess × tariff multiplier)
-  const leakageDetected = redCount * 2500 * 0.4;
-
-  // Revenue balance (leakage recovery - subsidy outflow)
-  const revenueBalance = leakageDetected - subsidyManaged;
+  const revenuePositive = stats.revenueBalance >= 0;
 
   return (
-    <div className="p-7 max-w-[1440px] mx-auto">
-      {/* Page Header */}
-      <div className="mb-7 animate-[fadeIn_0.5s_ease-out]">
-        <h2 className="text-2xl font-extrabold text-slate-50 tracking-[-0.5px] mb-1">Vitals Overview</h2>
-        <p className="text-[13.5px] text-slate-400">
-          Real-time equity intelligence across {stats?.counties_covered || 0} counties
-          {' · '}{totalAccounts} accounts scored
-          {stats?.turkana_exceptions > 0 && (
-            <span className="text-red-luxury ml-1">
-              {'· '}{stats.turkana_exceptions} anomalies detected
-            </span>
-          )}
+    <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto">
+      <div className="mb-6">
+        <p className="text-sm text-muted">
+          Live synthetic cohort · {stats.total_accounts.toLocaleString()} accounts ·{' '}
+          {stats.counties_covered} counties · {stats.turkana_exceptions} luxury-in-poverty flags
         </p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-7">
-        <KPICard
-          label="Total Subsidies Managed"
-          value={`KSh ${subsidyManaged.toLocaleString()}`}
-          detail={`${greenCount} households qualifying for GREEN tariff (0.60×)`}
-          colorClass="green"
-          icon="🟢"
-          delay={1}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          label="Total subsidies managed (est. annual)"
+          value={`KSh ${stats.subsidyManaged.toLocaleString()}`}
+          detail={`${stats.classification_counts.GREEN} GREEN households in the synthetic tariff model.`}
         />
-        <KPICard
-          label="Detected Leakage"
-          value={`KSh ${leakageDetected.toLocaleString()}`}
-          detail={`${redCount} luxury/anomaly accounts flagged (1.40× tariff)`}
-          colorClass="red"
-          icon="🔴"
-          delay={2}
+        <StatCard
+          label="Detected leakage (est. annual)"
+          value={`KSh ${stats.leakageDetected.toLocaleString()}`}
+          detail={`${stats.classification_counts.RED} RED accounts contributing cross-subsidy stress.`}
         />
-        <KPICard
-          label="Revenue Balance"
-          value={`KSh ${revenueBalance >= 0 ? '+' : ''}${revenueBalance.toLocaleString()}`}
-          detail={revenueBalance >= 0 ? 'Cross-subsidy model is revenue positive' : 'Subsidy outflow exceeds leakage recovery'}
-          colorClass={revenueBalance >= 0 ? 'cyan' : 'yellow'}
-          icon="⚖️"
-          delay={3}
+        <div
+          className={`rounded-xl border-2 p-0 overflow-hidden shadow-card ${
+            revenuePositive ? 'border-tier-green' : 'border-tier-red'
+          }`}
+        >
+          <StatCard
+            label="Revenue balance"
+            value={`KSh ${revenuePositive ? '+' : ''}${stats.revenueBalance.toLocaleString()}`}
+            detail={
+              revenuePositive
+                ? 'Surplus versus modelled subsidy outflow — cross-subsidy appears positive.'
+                : 'Deficit versus modelled subsidy outflow — review fee and discount levers.'
+            }
+          />
+        </div>
+        <StatCard
+          label="National subsidy efficiency score"
+          value={`${stats.efficiencyScore}%`}
+          detail="Of every KSh 100 in subsidies, this share reaches households with genuinely high poverty signals in the cohort."
+          variant="hero"
         />
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-7">
-        <ClassificationChart stats={stats} />
-        <ScoreDistribution results={allResults} />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+        <KenyaCountyMap countyAgg={stats.countyAgg} />
+        <div className="card flex flex-col min-h-[420px]">
+          <div className="px-5 py-4 border-b border-border">
+            <span className="text-sm font-semibold text-primary">Classification mix</span>
+            <p className="text-xs text-muted mt-1">Donut shows exact GREEN / YELLOW / RED counts.</p>
+          </div>
+          <div className="p-4 flex flex-col md:flex-row items-center gap-4 flex-1">
+            <div className="w-full md:w-1/2 h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={donutData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={58}
+                    outerRadius={86}
+                    paddingAngle={2}
+                  >
+                    {donutData.map((entry) => (
+                      <Cell key={entry.key} fill={COLORS[entry.key]} stroke="#fff" strokeWidth={1} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(v, n) => [`${v} accounts`, n]}
+                    contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col gap-3">
+              {donutData.map((d) => (
+                <div key={d.key} className="flex items-center justify-between text-sm">
+                  <span className="inline-flex items-center gap-2 text-muted">
+                    <span className="w-3 h-3 rounded-full" style={{ background: COLORS[d.key] }} />
+                    {d.name}
+                  </span>
+                  <span className="font-bold text-body tabular-nums">{d.value}</span>
+                </div>
+              ))}
+              <div className="mt-2">
+                <div className="text-xs font-semibold text-primary mb-2">Top 5 counties by modelled leakage</div>
+                <div className="h-[200px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={leakageBars} layout="vertical" margin={{ left: 8, right: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis type="number" stroke="#6B7280" fontSize={11} />
+                      <YAxis type="category" dataKey="name" width={88} stroke="#6B7280" fontSize={11} />
+                      <Tooltip
+                        cursor={{ fill: '#EFF6FF' }}
+                        contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB' }}
+                      />
+                      <Bar dataKey="leakage" fill="#1B3A6B" radius={[0, 6, 6, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Turkana Exception Alerts */}
-      <TurkanaAlertPanel results={allResults} />
-
-      {/* Signal Breakdown */}
-      <div className="mt-5">
-        <SignalBreakdown results={allResults} />
-      </div>
-    </div>
+    </PageFade>
   );
 }
