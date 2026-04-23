@@ -55,3 +55,49 @@
 .animate-fade-in {
   animation: fade-in-up 0.45s ease-out both;
 }
+
+/* NAJI floating mic — slow idle pulse (inviting, not distracting) */
+@keyframes naji-mic-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(27, 58, 107, 0.32);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(27, 58, 107, 0);
+    transform: scale(1.03);
+  }
+}
+
+.naji-mic-pulse {
+  animation: naji-mic-pulse 2.8s ease-in-out infinite;
+}
+
+/* Single-page print for My Energy Report */
+@media print {
+  @page {
+    margin: 12mm;
+    size: A4 portrait;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .household-report-print-root,
+  .household-report-print-root * {
+    visibility: visible !important;
+  }
+  .household-report-print-root {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
