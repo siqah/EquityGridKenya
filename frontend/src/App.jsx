@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SyntheticDataProvider } from './context/SyntheticDataContext';
+import { DashboardModeProvider } from './context/DashboardModeContext';
+import { NajiProvider } from './context/NajiContext';
+import HouseholdEntryModal from './components/Household/HouseholdEntryModal';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 import VitalsPage from './pages/VitalsPage';
@@ -10,6 +13,7 @@ import PolicySimulatorPage from './pages/PolicySimulatorPage';
 import AccountLookupPage from './pages/AccountLookupPage';
 import MethodologyPage from './pages/MethodologyPage';
 import HouseholdReportPage from './pages/HouseholdReportPage';
+import HouseholdDashboardPage from './pages/HouseholdDashboardPage';
 
 function AppShell() {
   const [mobileNav, setMobileNav] = useState(false);
@@ -26,6 +30,7 @@ function AppShell() {
           <Route path="/simulator" element={<PolicySimulatorPage />} />
           <Route path="/lookup" element={<AccountLookupPage />} />
           <Route path="/methodology" element={<MethodologyPage />} />
+          <Route path="/my-account" element={<HouseholdDashboardPage />} />
           <Route path="/my-energy-report" element={<HouseholdReportPage />} />
           <Route path="/household/:accountHash" element={<HouseholdReportPage />} />
         </Routes>
@@ -38,7 +43,12 @@ export default function App() {
   return (
     <SyntheticDataProvider>
       <BrowserRouter>
-        <AppShell />
+        <DashboardModeProvider>
+          <NajiProvider>
+            <HouseholdEntryModal />
+            <AppShell />
+          </NajiProvider>
+        </DashboardModeProvider>
       </BrowserRouter>
     </SyntheticDataProvider>
   );

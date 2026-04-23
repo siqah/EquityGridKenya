@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
+import { useDashboardMode } from '../../context/DashboardModeContext';
 
-const navItems = [
+const regulatorNav = [
   { path: '/', label: 'Vitals Overview', icon: '📊' },
   { path: '/accounts', label: 'Account Intelligence', icon: '🔍' },
   { path: '/alerts', label: 'Anomaly Alerts', icon: '🚨' },
@@ -11,6 +12,22 @@ const navItems = [
 ];
 
 export default function Sidebar({ mobileOpen, onClose }) {
+  const { isHousehold, householdAccountHash } = useDashboardMode();
+
+  const householdNav = [
+    { path: '/my-account', label: 'My home', icon: '🏠' },
+    {
+      path: householdAccountHash
+        ? `/household/${encodeURIComponent(householdAccountHash)}`
+        : '/my-energy-report',
+      label: 'Detailed energy report',
+      icon: '📋',
+    },
+    { path: '/lookup', label: 'Account Lookup', icon: '🔎' },
+  ];
+
+  const navItems = isHousehold ? householdNav : regulatorNav;
+
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border-l-[3px] transition-colors no-underline ${
       isActive
@@ -21,13 +38,13 @@ export default function Sidebar({ mobileOpen, onClose }) {
   const nav = (
     <>
       <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
-        Dashboard
+        {isHousehold ? 'My account' : 'Dashboard'}
       </div>
       {navItems.map((item) => (
         <NavLink
-          key={item.path}
+          key={item.label}
           to={item.path}
-          end={item.path === '/'}
+          end={item.path === '/' || item.path === '/my-account'}
           className={linkClass}
           onClick={() => onClose?.()}
         >
@@ -37,19 +54,23 @@ export default function Sidebar({ mobileOpen, onClose }) {
           <span>{item.label}</span>
         </NavLink>
       ))}
-      <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
-        External
-      </div>
-      <a
-        href="http://127.0.0.1:8000/docs"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline border-l-[3px] border-transparent"
-        onClick={() => onClose?.()}
-      >
-        <span className="text-lg w-7 text-center shrink-0">📡</span>
-        <span>API Docs</span>
-      </a>
+      {!isHousehold && (
+        <>
+          <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
+            External
+          </div>
+          <a
+            href="http://127.0.0.1:8000/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline border-l-[3px] border-transparent"
+            onClick={() => onClose?.()}
+          >
+            <span className="text-lg w-7 text-center shrink-0">📡</span>
+            <span>API Docs</span>
+          </a>
+        </>
+      )}
     </>
   );
 
@@ -77,7 +98,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
               EquityGrid Kenya
             </span>
             <span className="text-[11px] font-medium text-muted uppercase tracking-wide">
-              Energy intelligence
+              {isHousehold ? 'Household view' : 'Energy intelligence'}
             </span>
           </div>
         </div>

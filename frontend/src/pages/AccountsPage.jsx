@@ -53,7 +53,7 @@ function AccountDrawer({ account, onClose }) {
           <Link
             to={`/household/${encodeURIComponent(account.account_hash)}`}
             onClick={onClose}
-            className="inline-flex w-full justify-center px-3 py-2 rounded-lg border-2 border-primary text-primary text-sm font-bold hover:bg-navactive"
+            className="inline-flex w-full justify-center px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 shadow-sm"
           >
             View Household Report
           </Link>

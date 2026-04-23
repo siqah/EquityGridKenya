@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import NajiFloatingWidget from '../components/Naji/NajiFloatingWidget';
 import PageFade from '../components/Layout/PageFade';
 import { useSyntheticData } from '../context/SyntheticDataContext';
 import { LOOKUP_CARDS, tierBarClass, buildExplanationPrompt } from '../constants/signalLabels';
@@ -78,6 +79,7 @@ export default function AccountLookupPage() {
   }) : '';
 
   return (
+    <>
     <PageFade className="p-5 md:p-8 max-w-[1100px] mx-auto space-y-5">
       <div className="card p-4 flex flex-col md:flex-row gap-3 md:items-end">
         <div className="flex-1">
@@ -122,7 +124,7 @@ export default function AccountLookupPage() {
           <div className="flex justify-end">
             <Link
               to={`/household/${encodeURIComponent(account.account_hash)}`}
-              className="inline-flex items-center px-4 py-2 rounded-lg border-2 border-primary text-primary text-sm font-bold hover:bg-navactive"
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 shadow-sm"
             >
               View Household Report
             </Link>
@@ -184,5 +186,7 @@ export default function AccountLookupPage() {
         </div>
       )}
     </PageFade>
+    <NajiFloatingWidget />
+    </>
   );
 }
