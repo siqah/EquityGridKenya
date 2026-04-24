@@ -15,7 +15,7 @@ preserving). When coordinates are absent, a county aggregate fallback is used.
 
 from __future__ import annotations
 
-from app.scoring.constants import COUNTY_BASELINE_INDEX, DEFAULT_BASELINE_INDEX
+from app.scoring.constants import COUNTY_POVERTY_INDEX, DEFAULT_POVERTY_INDEX
 
 # Ordered bands: (sub_county_or_ward_sector_label, location_type)
 # location_type must be one of: "urban", "peri-urban", "rural"
@@ -108,15 +108,15 @@ COUNTY_SUBCOUNTY_LOCATION_BANDS: dict[str, list[tuple[str, str]]] = {
 
 def _synthetic_bands_for_county(county: str) -> list[tuple[str, str]]:
     """
-    KNBS-style urban gradient approximated from county baseline headcount:
-    higher baseline ASAL counties skew toward rural bands; lower-baseline
+    KNBS-style urban gradient approximated from county poverty headcount:
+    higher poverty ASAL counties skew toward rural bands; lower-poverty
     counties retain more urban / peri-urban slots.
 
     Always returns exactly 10 ordered bands for stable hash indexing.
     """
-    p = COUNTY_BASELINE_INDEX.get(county, DEFAULT_BASELINE_INDEX)
+    p = COUNTY_POVERTY_INDEX.get(county, DEFAULT_POVERTY_INDEX)
     n = 10
-    # Target shares (must sum to 1); rural rises with baseline index.
+    # Target shares (must sum to 1); rural rises with poverty index.
     rural_share = min(0.85, max(0.15, p / 100.0))
     urban_share = min(0.55, max(0.05, (100.0 - p) / 120.0))
     peri_share = max(0.0, 1.0 - rural_share - urban_share)

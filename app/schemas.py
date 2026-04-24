@@ -1,7 +1,7 @@
 """
 EquityGrid Kenya — Pydantic Request/Response Schemas
 
-Handles validation, serialization, and API documentation.
+Six-variable equity model.
 """
 
 from __future__ import annotations
@@ -11,188 +11,124 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-
-# ─── Request Schemas ─────────────────────────────────────────────────────────
+from app.scoring.engine import default_nsps_coverage_for_county
 
 
 class AccountInput(BaseModel):
-    """Input data for scoring a single household account."""
+    """Household inputs for the six-variable equity score."""
 
-    account_id: str = Field(
-        ...,
-        min_length=1,
-        max_length=100,
-        description="Raw account identifier (will be SHA-256 hashed internally)",
-        examples=["KPLC-001-TRK-2024"],
-    )
-    county: str = Field(
-        ...,
-        min_length=1,
-        max_length=50,
-        description="Kenya county name",
-        examples=["Turkana", "Nairobi", "Mombasa"],
-    )
-    token_avg_amount: float = Field(
-        ...,
-        ge=0,
-        description="Average token purchase amount in KSh",
-        examples=[50.0, 500.0, 5000.0],
-    )
-    token_frequency: int = Field(
-        ...,
-        ge=0,
-        description="Number of token purchases per month",
-        examples=[20, 5, 2],
-    )
-    total_kwh: float = Field(
-        ...,
-        ge=0,
-        description="Total monthly electricity consumption in kWh",
-        examples=[25.0, 100.0, 500.0],
-    )
-    peak_load_kw: float = Field(
-        ...,
-        ge=0,
-        description="Peak instantaneous load in kW (high-draw appliance indicator)",
-        examples=[0.5, 2.0, 8.0],
-    )
-    latitude: Optional[float] = Field(
+    account_id: str = Field(..., min_length=1, max_length=100)
+    county: str = Field(..., min_length=1, max_length=80)
+    ward_avg_household_size: float = Field(..., ge=0.5, le=20.0)
+    kwh_month: float = Field(..., ge=0.0)
+    avg_disconnection_days_per_month: float = Field(..., ge=0.0, le=31.0)
+    nsps_registered: bool = Field(..., description="Verified NSPS social protection beneficiary")
+    county_nsps_coverage_rate: Optional[float] = Field(
         None,
-        ge=-90,
-        le=90,
-        description=(
-            "Optional latitude (WGS84). Used only in-memory with longitude to derive "
-            "Variable 2 via a hashed geographic layer — never stored."
-        ),
+        ge=0.0,
+        le=1.0,
+        description="County NSPS coverage prior (0–1); defaults from lookup table if omitted",
     )
-    longitude: Optional[float] = Field(
-        None,
-        ge=-180,
-        le=180,
-        description="Optional longitude (WGS84). Must be sent together with latitude.",
+    peak_demand_ratio: float = Field(..., ge=0.0, le=1.0, description="Share of kWh in evening peak (6pm–10pm)")
+    has_three_phase: bool = Field(..., description="Three-phase service connection")
+    connection_capacity_kva: float = Field(..., ge=0.0, le=200.0)
+    accounts_same_address: int = Field(..., ge=1, le=50)
+    urban_rural_classification: str = Field(
+        ...,
+        description="Urban, Peri-urban, or Rural — contextual display only (not scored)",
     )
 
     @field_validator("county")
     @classmethod
     def normalize_county(cls, v: str) -> str:
-        """Normalize county name to title case."""
         return v.strip().title()
 
+    @field_validator("urban_rural_classification")
+    @classmethod
+    def normalize_urban(cls, v: str) -> str:
+        t = v.strip()
+        if t.lower() in ("peri-urban", "periurban", "peri_urban"):
+            return "Peri-urban"
+        if t.lower() == "urban":
+            return "Urban"
+        if t.lower() == "rural":
+            return "Rural"
+        return t
+
     @model_validator(mode="after")
-    def latitude_longitude_pair(self) -> "AccountInput":
-        if (self.latitude is None) ^ (self.longitude is None):
-            raise ValueError("Provide both latitude and longitude, or omit both.")
+    def fill_nsps_coverage(self) -> "AccountInput":
+        if self.county_nsps_coverage_rate is None:
+            return self.model_copy(
+                update={
+                    "county_nsps_coverage_rate": default_nsps_coverage_for_county(
+                        self.county
+                    ),
+                },
+            )
         return self
 
 
 class BatchScoreRequest(BaseModel):
-    """Request body for batch scoring multiple accounts."""
-
-    accounts: list[AccountInput] = Field(
-        ...,
-        min_length=1,
-        max_length=1000,
-        description="List of accounts to score (max 1000 per batch)",
-    )
-
-
-# ─── Response Schemas ────────────────────────────────────────────────────────
+    accounts: list[AccountInput] = Field(..., min_length=1, max_length=1000)
 
 
 class SignalBreakdown(BaseModel):
-    """Detailed breakdown of individual signal scores."""
-
-    geographic_score: float = Field(..., description="Variable 5 — county baseline index (0-100)")
-    token_score: float = Field(..., description="Token purchase pattern signal (0-100)")
-    monthly_kwh_equity_score: float = Field(
-        ...,
-        description="Variable 1 — monthly kWh lifeline vs high-consumption band (0-100)",
-    )
-    location_equity_score: float = Field(
-        ...,
-        description="Variable 2 — location-type equity need from KNBS-linked bands (0-100)",
-    )
-    consumption_score: float = Field(
-        ...,
-        description="Peak load / demand-spike profile, 0-100 (legacy field name)",
-    )
+    consumption_per_capita: float = Field(..., description="Variable 1 — consumption per capita proxy (0–100)")
+    payment_consistency: float = Field(..., description="Variable 2 — payment / disconnection consistency (0–100)")
+    nsps_status: float = Field(..., description="Variable 3 — NSPS registration status (0–100)")
+    peak_demand_ratio: float = Field(..., description="Variable 4 — evening peak demand shape (0–100)")
+    upgrade_history: float = Field(..., description="Variable 5 — connection upgrade / capacity (0–100)")
+    active_accounts: float = Field(..., description="Variable 6 — meters at same address (0–100)")
 
 
 class EquityScoreResponse(BaseModel):
-    """Response for a single scored account."""
-
-    account_id_hash: str = Field(
-        ...,
-        description="SHA-256 hash of the account ID",
-    )
+    account_id_hash: str
     county: str
-    equity_score: float = Field(
-        ...,
-        ge=0,
-        le=100,
-        description="Final weighted equity score (0-100)",
-    )
-    classification: str = Field(
-        ...,
-        description="GREEN (subsidize), YELLOW (standard), or RED (high-draw/anomaly)",
-    )
-    suggested_tariff_multiplier: float = Field(
-        ...,
-        description="Tariff multiplier: 0.60 (GREEN), 1.00 (YELLOW), 1.40 (RED)",
-    )
-    flags: list[str] = Field(
-        default_factory=list,
-        description="Special flags, e.g. ['TURKANA_EXCEPTION']",
-    )
+    equity_score: float = Field(..., ge=0.0, le=100.0, description="Final weighted score (higher = more affluent)")
+    classification: str
+    suggested_tariff_multiplier: float
+    flags: list[str] = Field(default_factory=list)
     signal_breakdown: SignalBreakdown
-    explanation: str = Field(
-        ...,
-        description="Plain-language rationale from explain_score()",
-    )
+    explanation: str
 
 
 class BatchScoreResponse(BaseModel):
-    """Response for batch scoring."""
-
     total_processed: int
-    summary: dict[str, int] = Field(
-        ...,
-        description="Count by classification: {'GREEN': n, 'YELLOW': n, 'RED': n}",
-    )
+    summary: dict[str, int]
     results: list[EquityScoreResponse]
 
 
 class StatsResponse(BaseModel):
-    """Summary statistics across all scored accounts."""
-
     total_accounts: int
     classification_counts: dict[str, int]
     average_equity_score: float
-    turkana_exceptions: int
+    turkana_exceptions: int = Field(
+        ...,
+        description="Count of accounts flagged LUXURY_IN_POVERTY_ZONE (priority zone leakage)",
+    )
     counties_covered: int
 
 
 class ResultRecord(BaseModel):
-    """Full result record from database, including metadata."""
-
     id: int
     account_id_hash: str
     county: str
-    baseline_index: float
-    token_avg_amount: float
-    token_frequency: int
-    total_kwh: float
-    peak_load_kw: float
-    has_load_spike: bool
-    geographic_score: float
-    token_score: float
-    monthly_kwh_equity_score: float
-    location_equity_score: float
-    load_profile_score: float
-    consumption_score: float
-    location_type: str
-    location_subcounty: Optional[str] = None
-    geo_layer_fingerprint: Optional[str] = None
+    ward_avg_household_size: float
+    kwh_month: float
+    avg_disconnection_days_per_month: float
+    nsps_registered: bool
+    county_nsps_coverage_rate: float
+    peak_demand_ratio: float
+    has_three_phase: bool
+    connection_capacity_kva: float
+    accounts_same_address: int
+    urban_rural_classification: str
+    score_consumption_per_capita: float
+    score_payment_consistency: float
+    score_nsps_status: float
+    score_peak_demand_ratio: float
+    score_upgrade_history: float
+    score_active_accounts: float
     equity_score: float
     classification: str
     suggested_tariff_multiplier: float
@@ -204,8 +140,6 @@ class ResultRecord(BaseModel):
 
 
 class PaginatedResults(BaseModel):
-    """Paginated list of results."""
-
     total: int
     page: int
     per_page: int
@@ -213,8 +147,6 @@ class PaginatedResults(BaseModel):
 
 
 class HealthResponse(BaseModel):
-    """Health check response."""
-
     status: str = "healthy"
     app_name: str
     version: str

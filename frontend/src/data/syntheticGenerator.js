@@ -1,61 +1,16 @@
 import { centroidForCounty } from './countyCentroids';
-
-/** KNBS-style county poverty headcount proxy (0–1, higher = more poverty). */
-export const POVERTY_BY_COUNTY = {
-  Turkana: 0.88,
-  Mandera: 0.86,
-  Wajir: 0.84,
-  Garissa: 0.78,
-  Marsabit: 0.76,
-  Samburu: 0.72,
-  'West Pokot': 0.7,
-  Baringo: 0.58,
-  Kitui: 0.55,
-  Kilifi: 0.52,
-  Kwale: 0.5,
-  Busia: 0.48,
-  Migori: 0.46,
-  'Homa Bay': 0.45,
-  Kisumu: 0.44,
-  Siaya: 0.44,
-  Vihiga: 0.42,
-  Kakamega: 0.41,
-  Bungoma: 0.4,
-  Nyamira: 0.38,
-  Kisii: 0.37,
-  Narok: 0.42,
-  Bomet: 0.4,
-  Kericho: 0.35,
-  Nakuru: 0.32,
-  Laikipia: 0.34,
-  Meru: 0.36,
-  'Tharaka Nithi': 0.39,
-  Embu: 0.35,
-  Kirinyaga: 0.33,
-  'Murang\'a': 0.34,
-  Nyeri: 0.3,
-  Nyandarua: 0.32,
-  Kiambu: 0.28,
-  Machakos: 0.38,
-  Makueni: 0.42,
-  Kajiado: 0.3,
-  'Taita Taveta': 0.41,
-  Lamu: 0.43,
-  Isiolo: 0.55,
-  'Elgeyo-Marakwet': 0.48,
-  Nandi: 0.4,
-  'Uasin Gishu': 0.34,
-  'Trans Nzoia': 0.38,
-  'Tana River': 0.5,
-  Nairobi: 0.17,
-  Mombasa: 0.28,
-};
+import {
+  computeEquityFromInputs,
+  defaultNspsCoverageForCounty,
+  ARID_COUNTIES,
+  URBAN_MAJOR,
+} from './equityScoring';
 
 const OTHER_COUNTIES = [
   'Kiambu', 'Meru', 'Nyeri', 'Embu', 'Garissa', 'Wajir', 'Baringo', 'Laikipia',
   'Kitui', 'Makueni', 'Kajiado', 'Narok', 'Bomet', 'Kericho', 'Vihiga', 'Bungoma',
   'Busia', 'Siaya', 'Isiolo', 'Samburu', 'Lamu', 'Kwale', 'Kilifi', 'Migori',
-  'Nyamira', 'Kisii', 'Nandi', 'Trans Nzoia', 'Elgeyo-Marakwet', 'Tharaka Nithi',
+  'Nyamira', 'Kisii', 'Nandi', 'Trans Nzoia', 'Elgeyo Marakwet', 'Tharaka Nithi',
 ];
 
 const RED_FLAG_POOL = [
@@ -88,33 +43,6 @@ function randomInt(rng, min, max) {
   return Math.floor(rng() * (max - min + 1)) + min;
 }
 
-function tokenLabelForClass(cls, rng) {
-  if (cls === 'GREEN') {
-    const opts = ['Daily', 'Every 2 days', 'Every 2–3 days'];
-    return opts[randomInt(rng, 0, opts.length - 1)];
-  }
-  if (cls === 'YELLOW') return 'Weekly';
-  return 'Monthly';
-}
-
-function buildSignals(cls, rng) {
-  const bias = cls === 'RED' ? 1 : cls === 'YELLOW' ? 0.5 : 0;
-  const b = () => Math.min(
-    100,
-    Math.max(0, randomInt(rng, 0, 100) + Math.floor(bias * randomInt(rng, 5, 25))),
-  );
-  return {
-    consumptionPerCapita: b(),
-    paymentConsistency: b(),
-    peakDemandRatio: b(),
-    upgradeHistory: b(),
-    consumptionVariance: b(),
-    activeAccounts: b(),
-    timeOfFirstUsage: b(),
-    connectionAge: b(),
-  };
-}
-
 function countyPicker(rng) {
   return pickWeighted(rng, [
     { v: 'Nairobi', w: 300 },
@@ -128,127 +56,162 @@ function countyPicker(rng) {
   ]);
 }
 
-function tariffFor(cls) {
-  if (cls === 'GREEN') return 0.6;
-  if (cls === 'YELLOW') return 1.0;
-  return 1.4;
+function urbanRuralPick(rng, countyBase) {
+  if (URBAN_MAJOR.has(countyBase)) {
+    const u = rng();
+    if (u < 0.55) return 'Urban';
+    if (u < 0.85) return 'Peri-urban';
+    return 'Rural';
+  }
+  const u = rng();
+  if (u < 0.2) return 'Urban';
+  if (u < 0.45) return 'Peri-urban';
+  return 'Rural';
 }
 
-function povertyIndexForCountyBase(countyBase, rng) {
-  const v = POVERTY_BY_COUNTY[countyBase];
-  if (v != null) return Math.round(v * 1000) / 1000;
-  return Math.round((0.4 + rng() * 0.12) * 1000) / 1000;
+function nspsForTier(rng, tier, countyBase) {
+  if (tier === 'RED') return false;
+  if (tier === 'GREEN') {
+    if (ARID_COUNTIES.has(countyBase)) return rng() < 0.35;
+    if (URBAN_MAJOR.has(countyBase)) return rng() < 0.08;
+    return rng() < 0.2;
+  }
+  // YELLOW
+  return rng() < 0.15;
 }
 
-function buildAccount({
-  rng,
-  accountHash,
-  classification,
-  countyBase,
-  score,
-  kwh_month,
-  peak_kw,
-  token_avg_ksh,
-  token_frequency,
-  poverty_index,
-  flags,
-  ward,
-}) {
-  const cls = classification;
+function sampleInputsForTier(rng, tier, countyBase) {
+  const ward_avg_household_size = Math.round((2.1 + rng() * (6.8 - 2.1)) * 10) / 10;
+  let avg_disconnection_days_per_month;
+  let peak_demand_ratio;
+  let kwh_month;
+  let has_three_phase;
+  let connection_capacity_kva;
+  let accounts_same_address;
+
+  if (tier === 'GREEN') {
+    avg_disconnection_days_per_month = randomInt(rng, 4, 12);
+    peak_demand_ratio = Math.round((0.65 + rng() * (0.9 - 0.65)) * 100) / 100;
+    kwh_month = randomInt(rng, 18, 95);
+    has_three_phase = false;
+    connection_capacity_kva = Math.round((2 + rng() * 2.8) * 10) / 10;
+    accounts_same_address = 1;
+  } else if (tier === 'YELLOW') {
+    avg_disconnection_days_per_month = randomInt(rng, 1, 3);
+    peak_demand_ratio = Math.round((0.4 + rng() * (0.64 - 0.4)) * 100) / 100;
+    kwh_month = randomInt(rng, 75, 210);
+    has_three_phase = rng() < 0.05;
+    connection_capacity_kva = has_three_phase
+      ? Math.round((6 + rng() * 10) * 10) / 10
+      : Math.round((2.5 + rng() * 3.5) * 10) / 10;
+    accounts_same_address = rng() < 0.65 ? 1 : 2;
+  } else {
+    avg_disconnection_days_per_month = 0;
+    peak_demand_ratio = Math.round((0.1 + rng() * (0.39 - 0.1)) * 100) / 100;
+    kwh_month = randomInt(rng, 200, 620);
+    has_three_phase = rng() < 0.4;
+    connection_capacity_kva = has_three_phase
+      ? Math.round((12 + rng() * 28) * 10) / 10
+      : Math.round((5 + rng() * 10) * 10) / 10;
+    accounts_same_address = randomInt(rng, 1, 4);
+  }
+
+  const nsps_registered = nspsForTier(rng, tier, countyBase);
+  const county_nsps_coverage_rate = defaultNspsCoverageForCounty(countyBase);
+  const urban_rural_classification = urbanRuralPick(rng, countyBase);
+
+  return {
+    ward_avg_household_size,
+    kwh_month,
+    avg_disconnection_days_per_month,
+    nsps_registered,
+    county_nsps_coverage_rate,
+    peak_demand_ratio,
+    has_three_phase,
+    connection_capacity_kva,
+    accounts_same_address,
+    urban_rural_classification,
+  };
+}
+
+function buildRow(rng, accountHash, countyBase, ward, tier, flagsPreset = []) {
+  let inputs = sampleInputsForTier(rng, tier, countyBase);
+  let out = computeEquityFromInputs({
+    county: ward ? `${countyBase} (${ward})` : countyBase,
+    county_base: countyBase,
+    ward: ward || null,
+    ...inputs,
+    flags_preset: flagsPreset,
+  });
+  for (let t = 0; t < 60 && out.classification !== tier; t += 1) {
+    inputs = sampleInputsForTier(rng, tier, countyBase);
+    out = computeEquityFromInputs({
+      county: ward ? `${countyBase} (${ward})` : countyBase,
+      county_base: countyBase,
+      ward: ward || null,
+      ...inputs,
+      flags_preset: flagsPreset,
+    });
+  }
   const displayCounty = ward ? `${countyBase} (${ward})` : countyBase;
   return {
     account_hash: accountHash,
     county: displayCounty,
     county_base: countyBase,
     ward: ward || null,
-    score,
-    classification: cls,
-    tariff: tariffFor(cls),
-    kwh_month,
-    peak_kw,
-    token_avg_ksh,
-    token_frequency,
-    token_frequency_label: tokenLabelForClass(cls, rng),
-    poverty_index,
-    flags: flags || [],
-    signals: buildSignals(cls, rng),
+    urban_rural_classification: inputs.urban_rural_classification,
+    ward_avg_household_size: inputs.ward_avg_household_size,
+    kwh_month: inputs.kwh_month,
+    avg_disconnection_days_per_month: inputs.avg_disconnection_days_per_month,
+    nsps_registered: inputs.nsps_registered,
+    county_nsps_coverage_rate: inputs.county_nsps_coverage_rate,
+    peak_demand_ratio: inputs.peak_demand_ratio,
+    has_three_phase: inputs.has_three_phase,
+    connection_capacity_kva: inputs.connection_capacity_kva,
+    accounts_same_address: inputs.accounts_same_address,
+    final_score: out.final_score,
+    classification: out.classification,
+    tariff: out.tariff_multiplier,
+    variable_scores: out.variable_scores,
+    flags:
+      out.flags.length > 0
+        ? out.flags
+        : tier === 'RED'
+          ? pickRedFlags(rng)
+          : [],
+    kwh_per_person: out.kwh_per_person,
     coordinates: centroidForCounty(countyBase),
   };
 }
 
+function pickRedFlags(rng) {
+  const n = randomInt(rng, 1, 2);
+  return [...RED_FLAG_POOL].sort(() => rng() - 0.5).slice(0, n);
+}
+
 /**
- * 1,000 synthetic households: 420 Green, 355 Yellow, 225 Red (includes 3 fixed demo rows).
+ * 1,000 synthetic households (420 GREEN / 355 YELLOW / 225 RED) + 3 demos.
+ * Only the six-variable input fields above are stored per account (plus derived scores).
  */
 export function generateSyntheticAccounts(seed = 20260422) {
   const rng = createRng(seed);
-  const accounts = [];
-  let seq = 0;
-
-  const nextHash = () => {
-    seq += 1;
-    const n = String(randomInt(rng, 100000, 999999)).padStart(6, '0');
-    return `ACC_${n}`;
-  };
-
   const used = new Set();
 
-  function pushTier(classification, count) {
+  const nextHash = () => {
+    let h;
+    do {
+      h = `ACC_${String(randomInt(rng, 100000, 999999)).padStart(6, '0')}`;
+    } while (used.has(h));
+    used.add(h);
+    return h;
+  };
+
+  const accounts = [];
+
+  function pushTier(tier, count) {
     for (let i = 0; i < count; i += 1) {
-      let hash = nextHash();
-      while (used.has(hash)) hash = nextHash();
-      used.add(hash);
-
       const countyBase = countyPicker(rng);
-      let score;
-      let kwh;
-      let peak;
-      let token;
-      let freq;
-
-      if (classification === 'GREEN') {
-        score = randomInt(rng, 0, 40);
-        kwh = randomInt(rng, 20, 80);
-        peak = Math.round((0.2 + rng() * (0.8 - 0.2)) * 10) / 10;
-        token = randomInt(rng, 50, 150);
-        freq = randomInt(rng, 12, 30);
-      } else if (classification === 'YELLOW') {
-        score = randomInt(rng, 41, 70);
-        kwh = randomInt(rng, 81, 200);
-        peak = Math.round((0.9 + rng() * (2.5 - 0.9)) * 10) / 10;
-        token = randomInt(rng, 151, 500);
-        freq = randomInt(rng, 4, 10);
-      } else {
-        score = randomInt(rng, 71, 100);
-        kwh = randomInt(rng, 201, 600);
-        peak = Math.round((2.6 + rng() * (8.0 - 2.6)) * 10) / 10;
-        token = randomInt(rng, 501, 2000);
-        freq = randomInt(rng, 1, 3);
-      }
-
-      const poverty_index = povertyIndexForCountyBase(countyBase, rng);
-
-      const flags = [];
-      if (classification === 'RED') {
-        const nFlags = randomInt(rng, 1, 3);
-        const pool = [...RED_FLAG_POOL].sort(() => rng() - 0.5);
-        flags.push(...pool.slice(0, nFlags));
-      }
-
-      accounts.push(
-        buildAccount({
-          rng,
-          accountHash: hash,
-          classification,
-          countyBase,
-          score,
-          kwh_month: kwh,
-          peak_kw: peak,
-          token_avg_ksh: token,
-          token_frequency: freq,
-          poverty_index,
-          flags,
-        }),
-      );
+      accounts.push(buildRow(rng, nextHash(), countyBase, null, tier));
     }
   }
 
@@ -256,84 +219,105 @@ export function generateSyntheticAccounts(seed = 20260422) {
   pushTier('YELLOW', 355);
   pushTier('RED', 223);
 
-  const demo1 = buildAccount({
-    rng,
-    accountHash: 'ACC_168669',
-    classification: 'RED',
-    countyBase: 'Turkana',
-    score: 82,
-    kwh_month: 340,
-    peak_kw: 4.2,
-    token_avg_ksh: 1800,
-    token_frequency: 2,
-    poverty_index: 0.88,
-    flags: ['LUXURY_IN_POVERTY_ZONE'],
-  });
-  demo1.token_frequency_label = 'Monthly';
-  demo1.signals = {
-    consumptionPerCapita: 88,
-    paymentConsistency: 72,
-    peakDemandRatio: 91,
-    upgradeHistory: 65,
-    consumptionVariance: 70,
-    activeAccounts: 55,
-    timeOfFirstUsage: 48,
-    connectionAge: 62,
-  };
+  function pushDemo(accountHash, displayCounty, countyBase, ward, fields, flagsPreset) {
+    const o = computeEquityFromInputs({
+      county: displayCounty,
+      county_base: countyBase,
+      ward_avg_household_size: fields.ward_avg_household_size,
+      kwh_month: fields.kwh_month,
+      avg_disconnection_days_per_month: fields.avg_disconnection_days_per_month,
+      nsps_registered: fields.nsps_registered,
+      county_nsps_coverage_rate: fields.county_nsps_coverage_rate,
+      peak_demand_ratio: fields.peak_demand_ratio,
+      has_three_phase: fields.has_three_phase,
+      connection_capacity_kva: fields.connection_capacity_kva,
+      accounts_same_address: fields.accounts_same_address,
+      flags_preset: flagsPreset,
+    });
+    accounts.push({
+      account_hash: accountHash,
+      county: displayCounty,
+      county_base: countyBase,
+      ward,
+      urban_rural_classification: fields.urban_rural_classification,
+      ward_avg_household_size: fields.ward_avg_household_size,
+      kwh_month: fields.kwh_month,
+      avg_disconnection_days_per_month: fields.avg_disconnection_days_per_month,
+      nsps_registered: fields.nsps_registered,
+      county_nsps_coverage_rate: fields.county_nsps_coverage_rate,
+      peak_demand_ratio: fields.peak_demand_ratio,
+      has_three_phase: fields.has_three_phase,
+      connection_capacity_kva: fields.connection_capacity_kva,
+      accounts_same_address: fields.accounts_same_address,
+      final_score: o.final_score,
+      classification: o.classification,
+      tariff: o.tariff_multiplier,
+      variable_scores: o.variable_scores,
+      flags: o.flags,
+      kwh_per_person: o.kwh_per_person,
+      coordinates: centroidForCounty(countyBase),
+    });
+  }
 
-  const demo2 = buildAccount({
-    rng,
-    accountHash: 'ACC_004521',
-    classification: 'GREEN',
-    countyBase: 'Nairobi',
-    score: 18,
-    kwh_month: 35,
-    peak_kw: 0.3,
-    token_avg_ksh: 60,
-    token_frequency: 26,
-    poverty_index: 0.52,
-    flags: ['ENERGY_POVERTY_CONFIRMED'],
-    ward: 'Kibera',
-  });
-  demo2.token_frequency_label = 'Daily';
-  demo2.signals = {
-    consumptionPerCapita: 12,
-    paymentConsistency: 22,
-    peakDemandRatio: 15,
-    upgradeHistory: 10,
-    consumptionVariance: 18,
-    activeAccounts: 8,
-    timeOfFirstUsage: 20,
-    connectionAge: 35,
-  };
+  pushDemo(
+    'ACC_168669',
+    'Turkana',
+    'Turkana',
+    null,
+    {
+      ward_avg_household_size: 5.2,
+      kwh_month: 340,
+      avg_disconnection_days_per_month: 0,
+      nsps_registered: false,
+      county_nsps_coverage_rate: defaultNspsCoverageForCounty('Turkana'),
+      peak_demand_ratio: 0.18,
+      has_three_phase: true,
+      connection_capacity_kva: 15,
+      accounts_same_address: 2,
+      urban_rural_classification: 'Rural',
+    },
+    [],
+  );
 
-  const demo3 = buildAccount({
-    rng,
-    accountHash: 'ACC_772301',
-    classification: 'RED',
-    countyBase: 'Nairobi',
-    score: 91,
-    kwh_month: 580,
-    peak_kw: 7.8,
-    token_avg_ksh: 1950,
-    token_frequency: 2,
-    poverty_index: 0.14,
-    flags: ['LUXURY_APPLIANCE_DETECTED', 'MULTI_ACCOUNT_LANDLORD'],
-    ward: 'Kilimani',
-  });
-  demo3.token_frequency_label = 'Monthly';
-  demo3.signals = {
-    consumptionPerCapita: 94,
-    paymentConsistency: 88,
-    peakDemandRatio: 96,
-    upgradeHistory: 82,
-    consumptionVariance: 76,
-    activeAccounts: 90,
-    timeOfFirstUsage: 70,
-    connectionAge: 68,
-  };
+  pushDemo(
+    'ACC_004521',
+    'Nairobi (Kibera)',
+    'Nairobi',
+    'Kibera',
+    {
+      ward_avg_household_size: 5.8,
+      kwh_month: 35,
+      avg_disconnection_days_per_month: 9,
+      nsps_registered: true,
+      county_nsps_coverage_rate: defaultNspsCoverageForCounty('Nairobi'),
+      peak_demand_ratio: 0.82,
+      has_three_phase: false,
+      connection_capacity_kva: 3.5,
+      accounts_same_address: 1,
+      urban_rural_classification: 'Urban',
+    },
+    [],
+  );
 
-  accounts.push(demo1, demo2, demo3);
+  pushDemo(
+    'ACC_772301',
+    'Nairobi (Kilimani)',
+    'Nairobi',
+    'Kilimani',
+    {
+      ward_avg_household_size: 2.1,
+      kwh_month: 580,
+      avg_disconnection_days_per_month: 0,
+      nsps_registered: false,
+      county_nsps_coverage_rate: defaultNspsCoverageForCounty('Nairobi'),
+      peak_demand_ratio: 0.12,
+      has_three_phase: true,
+      connection_capacity_kva: 25,
+      accounts_same_address: 4,
+      urban_rural_classification: 'Urban',
+    },
+    [],
+  );
 
   const byHash = new Map();
   accounts.forEach((a) => byHash.set(a.account_hash, a));

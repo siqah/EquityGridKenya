@@ -2,420 +2,347 @@
 """
 EquityGrid Kenya — Synthetic Dataset Generator
 
-Generates 100 realistic Kenyan household accounts with varying
-baseline allocations, token purchase patterns, and consumption profiles.
-
-Includes 5 "Turkana Exception" accounts — high-draw consumption in
-high-priority zones that must be flagged RED.
-
-This script writes DIRECTLY to the database using the scoring engine
-(no HTTP/requests dependency needed).
+Builds 1,000 scored household rows aligned with the six-variable equity model
+(same field ranges as the frontend synthetic cohort) and writes them to the
+database via calculate_equity_score.
 
 Usage:
     python scripts/generate_synthetic_data.py
 """
 
+from __future__ import annotations
+
 import json
+import os
 import random
 import sys
-import os
+from datetime import datetime, timezone
 
-# Add project root to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.database import SessionLocal, init_db
-from app.models import EquityResult, AuditTrail, Classification
-from app.scoring.engine import calculate_equity_score
-from datetime import datetime, timezone
+from app.models import AuditTrail, Classification, EquityResult
+from app.scoring.engine import calculate_equity_score, default_nsps_coverage_for_county
+
+OTHER_COUNTIES = [
+    "Kiambu", "Meru", "Nyeri", "Embu", "Garissa", "Wajir", "Baringo", "Laikipia",
+    "Kitui", "Makueni", "Kajiado", "Narok", "Bomet", "Kericho", "Vihiga", "Bungoma",
+    "Busia", "Siaya", "Isiolo", "Samburu", "Lamu", "Kwale", "Kilifi", "Migori",
+    "Nyamira", "Kisii", "Nandi", "Trans Nzoia", "Elgeyo Marakwet", "Tharaka Nithi",
+]
+
+ARID_COUNTIES = frozenset({
+    "Turkana", "Mandera", "Wajir", "Garissa", "Marsabit", "Samburu", "Isiolo",
+    "West Pokot", "Baringo", "Kitui", "Makueni", "Tana River", "Lamu",
+})
+
+URBAN_MAJOR = frozenset({"Nairobi", "Mombasa", "Kisumu"})
+
+COUNTY_WEIGHTS = (
+    [("Nairobi", 300), ("Mombasa", 120), ("Kisumu", 100), ("Nakuru", 80)]
+    + [("Turkana", 60), ("Kakamega", 50), ("Machakos", 50)]
+    + [(c, 240 // max(1, len(OTHER_COUNTIES))) for c in OTHER_COUNTIES]
+)
+
+RESERVED_DEMO_IDS = frozenset({"ACC_168669", "ACC_004521", "ACC_772301"})
 
 
-def generate_account_id(prefix: str, index: int) -> str:
-    """Generate a realistic KPLC-style account ID."""
-    return f"KPLC-{prefix}-{index:04d}-2024"
+def pick_county(rng: random.Random) -> str:
+    names, weights = zip(*COUNTY_WEIGHTS)
+    return rng.choices(names, weights=weights, k=1)[0]
 
 
-def generate_high_priority_accounts(count: int = 30) -> list[dict]:
-    """
-    Scenario 1: High priority, lifeline usage.
-    Counties: Turkana, Mandera, Samburu, Wajir, Marsabit, etc.
-    Expected classification: GREEN
-    """
-    counties = ["Turkana", "Mandera", "Samburu", "Wajir", "Marsabit", "Tana River", "Garissa"]
-    accounts = []
-
-    for i in range(count):
-        accounts.append({
-            "account_id": generate_account_id("DP", i + 1),
-            "county": random.choice(counties),
-            "token_avg_amount": round(random.uniform(30, 80), 2),
-            "token_frequency": random.randint(15, 25),
-            "total_kwh": round(random.uniform(8, 30), 1),
-            "peak_load_kw": round(random.uniform(0.2, 1.5), 2),
-        })
-
-    return accounts
+def urban_rural_pick(rng: random.Random, county_base: str) -> str:
+    if county_base in URBAN_MAJOR:
+        u = rng.random()
+        if u < 0.55:
+            return "Urban"
+        if u < 0.85:
+            return "Peri-urban"
+        return "Rural"
+    u = rng.random()
+    if u < 0.2:
+        return "Urban"
+    if u < 0.45:
+        return "Peri-urban"
+    return "Rural"
 
 
-def generate_moderate_priority_accounts(count: int = 25) -> list[dict]:
-    """
-    Scenario 2: Moderate priority, standard usage.
-    Counties: Kilifi, Busia, Kisumu, Kwale, Kakamega, etc.
-    Expected classification: YELLOW
-    """
-    counties = ["Kilifi", "Busia", "Kisumu", "Kwale", "Kakamega", "Siaya", "Migori", "Homa Bay"]
-    accounts = []
-
-    for i in range(count):
-        accounts.append({
-            "account_id": generate_account_id("MP", i + 1),
-            "county": random.choice(counties),
-            "token_avg_amount": round(random.uniform(200, 500), 2),
-            "token_frequency": random.randint(4, 10),
-            "total_kwh": round(random.uniform(40, 120), 1),
-            "peak_load_kw": round(random.uniform(1.0, 3.5), 2),
-        })
-
-    return accounts
+def nsps_for_tier(rng: random.Random, tier: str, county_base: str) -> bool:
+    if tier == "RED":
+        return False
+    if tier == "GREEN":
+        if county_base in ARID_COUNTIES:
+            return rng.random() < 0.35
+        if county_base in URBAN_MAJOR:
+            return rng.random() < 0.08
+        return rng.random() < 0.2
+    return rng.random() < 0.15
 
 
-def generate_urban_standard_accounts(count: int = 20) -> list[dict]:
-    """
-    Scenario 3: Urban standard usage.
-    Counties: Nairobi, Mombasa, Nakuru, Kisumu.
-    Expected classification: YELLOW
-    """
-    counties = ["Nairobi", "Mombasa", "Nakuru", "Kisumu"]
-    accounts = []
+def sample_inputs_for_tier(rng: random.Random, tier: str, county_base: str) -> dict:
+    ward_avg_household_size = round(rng.uniform(2.1, 6.8), 1)
 
-    for i in range(count):
-        accounts.append({
-            "account_id": generate_account_id("US", i + 1),
-            "county": random.choice(counties),
-            "token_avg_amount": round(random.uniform(1000, 3000), 2),
-            "token_frequency": random.randint(2, 4),
-            "total_kwh": round(random.uniform(100, 250), 1),
-            "peak_load_kw": round(random.uniform(2.0, 4.5), 2),
-        })
+    if tier == "GREEN":
+        avg_disconnection_days_per_month = float(rng.randint(4, 12))
+        peak_demand_ratio = round(rng.uniform(0.65, 0.90), 2)
+        kwh_month = float(rng.randint(18, 95))
+        has_three_phase = False
+        connection_capacity_kva = round(rng.uniform(2.0, 4.8), 1)
+        accounts_same_address = 1
+    elif tier == "YELLOW":
+        avg_disconnection_days_per_month = float(rng.randint(1, 3))
+        peak_demand_ratio = round(rng.uniform(0.40, 0.64), 2)
+        kwh_month = float(rng.randint(75, 210))
+        has_three_phase = rng.random() < 0.05
+        connection_capacity_kva = (
+            round(rng.uniform(6.0, 16.0), 1) if has_three_phase else round(rng.uniform(2.5, 6.0), 1)
+        )
+        accounts_same_address = 1 if rng.random() < 0.65 else 2
+    else:
+        avg_disconnection_days_per_month = 0.0
+        peak_demand_ratio = round(rng.uniform(0.10, 0.39), 2)
+        kwh_month = float(rng.randint(200, 620))
+        has_three_phase = rng.random() < 0.4
+        connection_capacity_kva = (
+            round(rng.uniform(12.0, 40.0), 1) if has_three_phase else round(rng.uniform(5.0, 15.0), 1)
+        )
+        accounts_same_address = rng.randint(1, 4)
 
-    return accounts
+    nsps_registered = nsps_for_tier(rng, tier, county_base)
+    county_nsps_coverage_rate = default_nsps_coverage_for_county(county_base)
+    urban_rural_classification = urban_rural_pick(rng, county_base)
 
-
-def generate_urban_high_draw_accounts(count: int = 15) -> list[dict]:
-    """
-    Scenario 4: Urban high-draw consumption.
-    Counties: Nairobi, Kiambu.
-    Expected classification: RED
-    """
-    counties = ["Nairobi", "Kiambu"]
-    accounts = []
-
-    for i in range(count):
-        accounts.append({
-            "account_id": generate_account_id("UL", i + 1),
-            "county": random.choice(counties),
-            "token_avg_amount": round(random.uniform(5000, 15000), 2),
-            "token_frequency": random.randint(1, 2),
-            "total_kwh": round(random.uniform(300, 800), 1),
-            "peak_load_kw": round(random.uniform(6.0, 15.0), 2),
-        })
-
-    return accounts
-
-
-def generate_turkana_exception_accounts(count: int = 5) -> list[dict]:
-    """
-    Scenario 5: TURKANA EXCEPTION 🚨
-    High-priority county BUT high-draw consumption.
-    This is the critical anomaly detection case.
-
-    These accounts are in Turkana (baseline index 87.5) but have:
-    - Very high kWh consumption (400-900)
-    - Heavy load spikes (>= 8 kW) indicating high-draw appliances
-    - Large token purchases (KSh 8000-20000)
-
-    Expected classification: RED with TURKANA_EXCEPTION flag
-    """
-    accounts = []
-
-    for i in range(count):
-        accounts.append({
-            "account_id": generate_account_id("TE", i + 1),
-            "county": "Turkana",
-            "token_avg_amount": round(random.uniform(8000, 20000), 2),
-            "token_frequency": random.randint(1, 3),
-            "total_kwh": round(random.uniform(400, 900), 1),
-            "peak_load_kw": round(random.uniform(8.0, 18.0), 2),
-        })
-
-    return accounts
+    return {
+        "ward_avg_household_size": ward_avg_household_size,
+        "kwh_month": kwh_month,
+        "avg_disconnection_days_per_month": avg_disconnection_days_per_month,
+        "nsps_registered": nsps_registered,
+        "county_nsps_coverage_rate": county_nsps_coverage_rate,
+        "peak_demand_ratio": peak_demand_ratio,
+        "has_three_phase": has_three_phase,
+        "connection_capacity_kva": connection_capacity_kva,
+        "accounts_same_address": accounts_same_address,
+        "urban_rural_classification": urban_rural_classification,
+    }
 
 
-def generate_edge_case_accounts(count: int = 5) -> list[dict]:
-    """
-    Scenario 6: Edge cases — borderline accounts.
-    These test the scoring boundaries.
-    """
-    accounts = [
-        # Borderline GREEN/YELLOW — moderate priority, very low consumption
-        {
-            "account_id": generate_account_id("EC", 1),
-            "county": "Busia",
-            "token_avg_amount": 150.0,
-            "token_frequency": 12,
-            "total_kwh": 35.0,
-            "peak_load_kw": 1.8,
-        },
-        # Borderline YELLOW/RED — urban, high consumption but no spikes
-        {
-            "account_id": generate_account_id("EC", 2),
-            "county": "Nairobi",
-            "token_avg_amount": 4000.0,
-            "token_frequency": 2,
-            "total_kwh": 280.0,
-            "peak_load_kw": 4.5,
-        },
-        # Near-Turkana-Exception — high priority, moderate consumption, just under spike threshold
-        {
-            "account_id": generate_account_id("EC", 3),
-            "county": "Marsabit",
-            "token_avg_amount": 3000.0,
-            "token_frequency": 3,
-            "total_kwh": 180.0,
-            "peak_load_kw": 4.8,  # Just under 5.0 threshold
-        },
-        # Zero consumption — new account or disconnected
-        {
-            "account_id": generate_account_id("EC", 4),
-            "county": "Wajir",
-            "token_avg_amount": 0.0,
-            "token_frequency": 0,
-            "total_kwh": 0.0,
-            "peak_load_kw": 0.0,
-        },
-        # Unknown county — tests default baseline index
-        {
-            "account_id": generate_account_id("EC", 5),
-            "county": "Unknown County",
-            "token_avg_amount": 800.0,
-            "token_frequency": 5,
-            "total_kwh": 90.0,
-            "peak_load_kw": 2.5,
-        },
-    ]
-
-    return accounts
+def resample_until_tier(
+    rng: random.Random,
+    tier: str,
+    county: str,
+    account_id: str,
+    max_tries: int = 60,
+):
+    inputs: dict = {}
+    result = None
+    for _ in range(max_tries):
+        inputs = sample_inputs_for_tier(rng, tier, county)
+        result = calculate_equity_score(
+            account_id=account_id,
+            county=county,
+            ward_avg_household_size=inputs["ward_avg_household_size"],
+            kwh_month=inputs["kwh_month"],
+            avg_disconnection_days_per_month=inputs["avg_disconnection_days_per_month"],
+            nsps_registered=inputs["nsps_registered"],
+            county_nsps_coverage_rate=inputs["county_nsps_coverage_rate"],
+            peak_demand_ratio=inputs["peak_demand_ratio"],
+            has_three_phase=inputs["has_three_phase"],
+            connection_capacity_kva=inputs["connection_capacity_kva"],
+            accounts_same_address=inputs["accounts_same_address"],
+            urban_rural_classification=inputs["urban_rural_classification"],
+        )
+        if result.classification == tier:
+            return result, inputs
+    assert result is not None
+    return result, inputs
 
 
-def main():
-    """Generate all synthetic accounts and write directly to the database."""
+def persist_result(db, result, inputs: dict, audit_action: str = "SCORE_CALCULATED") -> None:
+    flags_json = json.dumps(result.flags)
+    payload = dict(
+        county=result.county,
+        ward_avg_household_size=result.ward_avg_household_size,
+        kwh_month=result.kwh_month,
+        avg_disconnection_days_per_month=result.avg_disconnection_days_per_month,
+        nsps_registered=result.nsps_registered,
+        county_nsps_coverage_rate=result.county_nsps_coverage_rate,
+        peak_demand_ratio=result.peak_demand_ratio,
+        has_three_phase=result.has_three_phase,
+        connection_capacity_kva=result.connection_capacity_kva,
+        accounts_same_address=result.accounts_same_address,
+        urban_rural_classification=inputs["urban_rural_classification"],
+        score_consumption_per_capita=result.score_consumption_per_capita,
+        score_payment_consistency=result.score_payment_consistency,
+        score_nsps_status=result.score_nsps_status,
+        score_peak_demand_ratio=result.score_peak_demand_ratio,
+        score_upgrade_history=result.score_upgrade_history,
+        score_active_accounts=result.score_active_accounts,
+        equity_score=result.equity_score,
+        classification=Classification(result.classification),
+        suggested_tariff_multiplier=result.suggested_tariff_multiplier,
+        flags=flags_json,
+    )
+
+    existing = (
+        db.query(EquityResult)
+        .filter(EquityResult.account_id_hash == result.account_id_hash)
+        .first()
+    )
+    if existing:
+        for k, v in payload.items():
+            setattr(existing, k, v)
+        existing.created_at = datetime.now(timezone.utc)
+    else:
+        db.add(EquityResult(account_id_hash=result.account_id_hash, **payload))
+
+    db.add(
+        AuditTrail(
+            account_id_hash=result.account_id_hash,
+            action=audit_action,
+            details=json.dumps(
+                {
+                    "equity_score": result.equity_score,
+                    "classification": result.classification,
+                    "tariff_multiplier": result.suggested_tariff_multiplier,
+                    "flags": result.flags,
+                },
+            ),
+        ),
+    )
+
+
+def next_account_id(rng: random.Random, used: set[str]) -> str:
+    for _ in range(100000):
+        h = f"ACC_{rng.randint(100000, 999999):06d}"
+        if h in RESERVED_DEMO_IDS or h in used:
+            continue
+        used.add(h)
+        return h
+    raise RuntimeError("Could not allocate unique synthetic account id")
+
+
+def main() -> None:
     print("=" * 70)
-    print("  EquityGrid Kenya — Synthetic Dataset Generator")
-    print("  Generating 100 accounts across 6 scenarios")
+    print("  EquityGrid Kenya — Synthetic Dataset Generator (6-variable model)")
+    print("  Target: 1,000 accounts + DB persist")
     print("=" * 70)
 
-    # Set random seed for reproducibility
-    random.seed(42)
+    rng = random.Random(20260422)
 
-    # Initialize the database tables
-    print("\n  ⚡ Initializing database...")
+    print("\n  Initializing database...")
     init_db()
-
-    # Open a database session
     db = SessionLocal()
 
-    # Generate all scenarios
-    all_accounts = []
+    print("  Clearing existing equity_results...")
+    db.query(EquityResult).delete()
+    db.query(AuditTrail).delete()
+    db.commit()
 
-    scenarios = [
-        ("High Priority (Lifeline)", generate_high_priority_accounts, 30),
-        ("Moderate Priority (Standard)", generate_moderate_priority_accounts, 25),
-        ("Urban Standard", generate_urban_standard_accounts, 20),
-        ("Urban High-Draw", generate_urban_high_draw_accounts, 15),
-        ("🚨 TURKANA EXCEPTION", generate_turkana_exception_accounts, 5),
-        ("Edge Cases (Borderline)", generate_edge_case_accounts, 5),
+    used_ids: set[str] = set()
+    results: list = []
+
+    tiers = [("GREEN", 419), ("YELLOW", 355), ("RED", 223)]
+
+    print("\n  Generating cohort...")
+    for tier, count in tiers:
+        for i in range(count):
+            county = pick_county(rng)
+            aid = next_account_id(rng, used_ids)
+            result, inputs = resample_until_tier(rng, tier, county, aid)
+            persist_result(db, result, inputs)
+            results.append(result)
+        print(f"    {tier}: {count} rows requested")
+
+    demos = [
+        (
+            "ACC_168669",
+            "Turkana",
+            {
+                "ward_avg_household_size": 5.2,
+                "kwh_month": 340.0,
+                "avg_disconnection_days_per_month": 0.0,
+                "nsps_registered": False,
+                "county_nsps_coverage_rate": default_nsps_coverage_for_county("Turkana"),
+                "peak_demand_ratio": 0.18,
+                "has_three_phase": True,
+                "connection_capacity_kva": 15.0,
+                "accounts_same_address": 2,
+                "urban_rural_classification": "Rural",
+            },
+        ),
+        (
+            "ACC_004521",
+            "Nairobi",
+            {
+                "ward_avg_household_size": 5.8,
+                "kwh_month": 35.0,
+                "avg_disconnection_days_per_month": 9.0,
+                "nsps_registered": True,
+                "county_nsps_coverage_rate": default_nsps_coverage_for_county("Nairobi"),
+                "peak_demand_ratio": 0.82,
+                "has_three_phase": False,
+                "connection_capacity_kva": 3.5,
+                "accounts_same_address": 1,
+                "urban_rural_classification": "Urban",
+            },
+        ),
+        (
+            "ACC_772301",
+            "Nairobi",
+            {
+                "ward_avg_household_size": 2.1,
+                "kwh_month": 580.0,
+                "avg_disconnection_days_per_month": 0.0,
+                "nsps_registered": False,
+                "county_nsps_coverage_rate": default_nsps_coverage_for_county("Nairobi"),
+                "peak_demand_ratio": 0.12,
+                "has_three_phase": True,
+                "connection_capacity_kva": 25.0,
+                "accounts_same_address": 4,
+                "urban_rural_classification": "Urban",
+            },
+        ),
     ]
 
-    for name, generator, count in scenarios:
-        accounts = generator(count)
-        # Inject random coordinates within Kenya bounds for all accounts
-        for acc in accounts:
-            acc["latitude"] = round(random.uniform(-4.5, 4.5), 6)
-            acc["longitude"] = round(random.uniform(34.0, 41.0), 6)
-        all_accounts.extend(accounts)
-        print(f"\n  ✅ {name}: {len(accounts)} accounts generated")
-
-    print(f"\n  📊 Total accounts: {len(all_accounts)}")
-    print("-" * 70)
-
-    # Score each account and persist to DB
-    print(f"\n  📡 Scoring and persisting to database...")
-
-    results = []
-    summary = {"GREEN": 0, "YELLOW": 0, "RED": 0}
-
-    for account in all_accounts:
-        # Run scoring engine
+    print("\n  Applying three fixed demo accounts...")
+    for aid, county, fields in demos:
+        used_ids.add(aid)
         result = calculate_equity_score(
-            account_id=account["account_id"],
-            county=account["county"],
-            token_avg_amount=account["token_avg_amount"],
-            token_frequency=account["token_frequency"],
-            total_kwh=account["total_kwh"],
-            peak_load_kw=account["peak_load_kw"],
-            latitude=account.get("latitude"),
-            longitude=account.get("longitude"),
+            account_id=aid,
+            county=county,
+            ward_avg_household_size=fields["ward_avg_household_size"],
+            kwh_month=fields["kwh_month"],
+            avg_disconnection_days_per_month=fields["avg_disconnection_days_per_month"],
+            nsps_registered=fields["nsps_registered"],
+            county_nsps_coverage_rate=fields["county_nsps_coverage_rate"],
+            peak_demand_ratio=fields["peak_demand_ratio"],
+            has_three_phase=fields["has_three_phase"],
+            connection_capacity_kva=fields["connection_capacity_kva"],
+            accounts_same_address=fields["accounts_same_address"],
+            urban_rural_classification=fields["urban_rural_classification"],
         )
-
-        # Persist to database
-        flags_json = json.dumps(result.flags)
-
-        existing = (
-            db.query(EquityResult)
-            .filter(EquityResult.account_id_hash == result.account_id_hash)
-            .first()
-        )
-
-        if existing:
-            existing.county = result.county
-            existing.baseline_index = result.baseline_index
-            existing.token_avg_amount = result.token_avg_amount
-            existing.token_frequency = result.token_frequency
-            existing.total_kwh = result.total_kwh
-            existing.peak_load_kw = result.peak_load_kw
-            existing.has_load_spike = result.has_load_spike
-            existing.geographic_score = result.geographic_score
-            existing.token_score = result.token_score
-            existing.monthly_kwh_equity_score = result.monthly_kwh_equity_score
-            existing.location_equity_score = result.location_equity_score
-            existing.load_profile_score = result.load_profile_score
-            existing.consumption_score = result.consumption_score
-            existing.location_type = result.location_type
-            existing.location_subcounty = result.location_subcounty
-            existing.geo_layer_fingerprint = result.geo_layer_fingerprint
-            existing.equity_score = result.equity_score
-            existing.classification = Classification(result.classification)
-            existing.suggested_tariff_multiplier = result.suggested_tariff_multiplier
-            existing.flags = flags_json
-            existing.created_at = datetime.now(timezone.utc)
-        else:
-            db_result = EquityResult(
-                account_id_hash=result.account_id_hash,
-                county=result.county,
-                baseline_index=result.baseline_index,
-                token_avg_amount=result.token_avg_amount,
-                token_frequency=result.token_frequency,
-                total_kwh=result.total_kwh,
-                peak_load_kw=result.peak_load_kw,
-                has_load_spike=result.has_load_spike,
-                geographic_score=result.geographic_score,
-                token_score=result.token_score,
-                monthly_kwh_equity_score=result.monthly_kwh_equity_score,
-                location_equity_score=result.location_equity_score,
-                load_profile_score=result.load_profile_score,
-                consumption_score=result.consumption_score,
-                location_type=result.location_type,
-                location_subcounty=result.location_subcounty,
-                geo_layer_fingerprint=result.geo_layer_fingerprint,
-                equity_score=result.equity_score,
-                classification=Classification(result.classification),
-                suggested_tariff_multiplier=result.suggested_tariff_multiplier,
-                flags=flags_json,
-            )
-            db.add(db_result)
-
-        # Audit trail
-        audit_entry = AuditTrail(
-            account_id_hash=result.account_id_hash,
-            action="SCORE_CALCULATED",
-            details=json.dumps({
-                "equity_score": result.equity_score,
-                "classification": result.classification,
-                "tariff_multiplier": result.suggested_tariff_multiplier,
-                "flags": result.flags,
-            }),
-        )
-        db.add(audit_entry)
-
-        summary[result.classification] += 1
+        persist_result(db, result, fields, audit_action="SCORE_CALCULATED")
         results.append(result)
+        print(f"    {aid} -> {result.classification} ({result.equity_score:.1f})")
 
     db.commit()
 
-    print(f"\n  ✅ Batch scoring complete!")
-    print(f"  📊 Total processed: {len(results)}")
-    print(f"\n  Classification Summary:")
-    print(f"    🟢 GREEN  (Subsidize):      {summary['GREEN']}")
-    print(f"    🟡 YELLOW (Standard):       {summary['YELLOW']}")
-    print(f"    🔴 RED    (High-Draw/Anomaly): {summary['RED']}")
-
-    # Verify Turkana Exceptions
-    turkana_exceptions = [r for r in results if "TURKANA_EXCEPTION" in r.flags]
-    print(f"\n  🚨 Turkana Exceptions detected: {len(turkana_exceptions)}")
-    for te in turkana_exceptions:
-        print(f"    → Hash: {te.account_id_hash[:16]}...")
-        print(f"      Score: {te.equity_score}, Class: {te.classification}")
-        print(f"      Tariff: {te.suggested_tariff_multiplier}×")
-        print(f"      Flags: {te.flags}")
-        print(f"      kWh: {te.total_kwh}, Peak: {te.peak_load_kw} kW")
-
-    # Show sample results
-    print(f"\n  📋 Sample Results (first 10):")
-    for r in results[:10]:
-        emoji = {"GREEN": "🟢", "YELLOW": "🟡", "RED": "🔴"}[r.classification]
-        print(
-            f"    {emoji} {r.county:15s} | "
-            f"Score: {r.equity_score:5.1f} | "
-            f"{r.classification:6s} | "
-            f"Tariff: {r.suggested_tariff_multiplier}× | "
-            f"kWh: {r.total_kwh:6.1f} | "
-            f"Peak: {r.peak_load_kw:4.1f}kW"
-        )
-
-    # Save full results to JSON
-    output_file = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "synthetic_results.json"
-    )
-    export_data = {
-        "total_processed": len(results),
-        "summary": summary,
-        "results": [
-            {
-                "account_id_hash": r.account_id_hash,
-                "county": r.county,
-                "baseline_index": r.baseline_index,
-                "equity_score": r.equity_score,
-                "classification": r.classification,
-                "suggested_tariff_multiplier": r.suggested_tariff_multiplier,
-                "flags": r.flags,
-                "signal_breakdown": {
-                    "geographic_score": r.geographic_score,
-                    "token_score": r.token_score,
-                    "monthly_kwh_equity_score": r.monthly_kwh_equity_score,
-                    "location_equity_score": r.location_equity_score,
-                    "consumption_score": r.consumption_score,
-                },
-                "inputs": {
-                    "token_avg_amount": r.token_avg_amount,
-                    "token_frequency": r.token_frequency,
-                    "total_kwh": r.total_kwh,
-                    "peak_load_kw": r.peak_load_kw,
-                    "has_load_spike": r.has_load_spike,
-                    "latitude": account.get("latitude"),
-                    "longitude": account.get("longitude"),
-                },
-            }
-            for r in results
-        ],
+    luxury = db.query(EquityResult).filter(EquityResult.flags.like("%LUXURY_IN_POVERTY_ZONE%")).count()
+    summary_db = {
+        "GREEN": db.query(EquityResult).filter(EquityResult.classification == Classification.GREEN).count(),
+        "YELLOW": db.query(EquityResult).filter(EquityResult.classification == Classification.YELLOW).count(),
+        "RED": db.query(EquityResult).filter(EquityResult.classification == Classification.RED).count(),
     }
-    with open(output_file, "w") as f:
-        json.dump(export_data, f, indent=2)
-    print(f"\n  💾 Full results saved to: {output_file}")
-
     db.close()
 
+    print(f"\n  Luxury-in-poverty flags: {luxury}")
+    print("\n  Classification counts (database):")
+    print(f"    GREEN: {summary_db.get('GREEN', 0)}")
+    print(f"    YELLOW: {summary_db.get('YELLOW', 0)}")
+    print(f"    RED: {summary_db.get('RED', 0)}")
     print("\n" + "=" * 70)
-    print("  ✅ Synthetic dataset generation complete!")
+    print("  Done.")
     print("=" * 70)
 
 

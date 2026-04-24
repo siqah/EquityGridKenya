@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageFade from '../components/Layout/PageFade';
 import { useSyntheticData } from '../context/SyntheticDataContext';
-import { SIGNAL_LABELS } from '../constants/signalLabels';
+import { SIGNAL_LABELS, tierBarClass } from '../constants/signalLabels';
 
 function scoreColor(cls) {
   if (cls === 'GREEN') return 'text-tier-green';
@@ -46,38 +47,56 @@ function AccountDrawer({ account, onClose }) {
               Tariff {account.tariff}×
             </span>
             <span className={`px-2.5 py-1 rounded-full border font-mono font-bold ${scoreColor(account.classification)}`}>
-              Score {account.score}
+              Score {account.final_score}
             </span>
           </div>
+          <Link
+            to={`/household/${encodeURIComponent(account.account_hash)}`}
+            onClick={onClose}
+            className="inline-flex w-full justify-center px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 shadow-sm"
+          >
+            View Household Report
+          </Link>
           <div className="text-sm text-body space-y-1">
+            <div>
+              <span className="text-muted">Urban / rural:</span>{' '}
+              <span className="font-semibold">{account.urban_rural_classification}</span>
+            </div>
             <div>
               <span className="text-muted">kWh / month:</span>{' '}
               <span className="font-semibold">{account.kwh_month}</span>
             </div>
             <div>
-              <span className="text-muted">Peak kW:</span>{' '}
-              <span className="font-semibold">{account.peak_kw}</span>
+              <span className="text-muted">Disconnection days / month:</span>{' '}
+              <span className="font-semibold">{account.avg_disconnection_days_per_month}</span>
             </div>
             <div>
-              <span className="text-muted">Token avg (KSh):</span>{' '}
-              <span className="font-semibold">{account.token_avg_ksh}</span>
+              <span className="text-muted">NSPS registered:</span>{' '}
+              <span className="font-semibold">{account.nsps_registered ? 'Yes' : 'No'}</span>
             </div>
             <div>
-              <span className="text-muted">Purchase cadence:</span>{' '}
-              <span className="font-semibold">{account.token_frequency_label}</span>{' '}
-              <span className="text-muted">({account.token_frequency}/mo)</span>
+              <span className="text-muted">Peak demand ratio:</span>{' '}
+              <span className="font-semibold">{account.peak_demand_ratio}</span>
             </div>
             <div>
-              <span className="text-muted">Baseline index:</span>{' '}
-              <span className="font-semibold">{account.baseline_index}</span>
+              <span className="text-muted">Three-phase:</span>{' '}
+              <span className="font-semibold">{account.has_three_phase ? 'Yes' : 'No'}</span>
+            </div>
+            <div>
+              <span className="text-muted">Connection kVA:</span>{' '}
+              <span className="font-semibold">{account.connection_capacity_kva}</span>
+            </div>
+            <div>
+              <span className="text-muted">Meters at address:</span>{' '}
+              <span className="font-semibold">{account.accounts_same_address}</span>
             </div>
           </div>
 
           <div>
-            <h3 className="text-sm font-bold text-primary mb-3">Eight scoring signals (0–100)</h3>
+            <h3 className="text-sm font-bold text-primary mb-3">Six scoring variables (0–100)</h3>
             <div className="space-y-3">
               {SIGNAL_LABELS.map((sig) => {
-                const val = account.signals?.[sig.key] ?? 0;
+                const val = account.variable_scores?.[sig.key] ?? 0;
                 return (
                   <div key={sig.key}>
                     <div className="flex justify-between text-xs mb-1">
@@ -86,7 +105,7 @@ function AccountDrawer({ account, onClose }) {
                     </div>
                     <div className="h-2 rounded-full bg-surface-muted border border-border overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-primary"
+                        className={`h-full rounded-full ${tierBarClass(val)}`}
                         style={{ width: `${val}%` }}
                       />
                     </div>
@@ -188,13 +207,13 @@ export default function AccountsPage() {
                 <tr>
                   <th>Account hash</th>
                   <th>County</th>
+                  <th>Urban / rural</th>
                   <th>Score</th>
                   <th>Class</th>
                   <th>Tariff</th>
                   <th>kWh</th>
-                  <th>Peak kW</th>
-                  <th>Token KSh</th>
-                  <th>Frequency</th>
+                  <th>Disc. days</th>
+                  <th>Peak ratio</th>
                   <th>Flags</th>
                 </tr>
               </thead>
@@ -207,7 +226,8 @@ export default function AccountsPage() {
                   >
                     <td className="font-mono text-xs text-body font-semibold">{r.account_hash}</td>
                     <td className="text-sm max-w-[200px] truncate">{r.county}</td>
-                    <td className={`font-mono font-bold ${scoreColor(r.classification)}`}>{r.score}</td>
+                    <td className="text-xs text-muted">{r.urban_rural_classification}</td>
+                    <td className={`font-mono font-bold ${scoreColor(r.classification)}`}>{r.final_score}</td>
                     <td>
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase ${pillClass(r.classification)}`}>
                         {r.classification}
@@ -215,12 +235,8 @@ export default function AccountsPage() {
                     </td>
                     <td className="text-sm font-semibold">{r.tariff}×</td>
                     <td className="text-sm">{r.kwh_month}</td>
-                    <td className="text-sm">{r.peak_kw}</td>
-                    <td className="text-sm">{r.token_avg_ksh}</td>
-                    <td className="text-xs text-muted">
-                      <div className="font-medium text-body">{r.token_frequency_label}</div>
-                      <div>{r.token_frequency}/mo</div>
-                    </td>
+                    <td className="text-sm">{r.avg_disconnection_days_per_month}</td>
+                    <td className="text-sm font-mono">{r.peak_demand_ratio}</td>
                     <td>
                       {r.flags?.length ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-tier-red border border-red-200">
