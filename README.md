@@ -1,6 +1,10 @@
 # EquityGridKenya
 
-Energy equity intelligence for smart grid policy. EquityGrid Kenya is an MVP decision-support engine that identifies energy poverty patterns and flags luxury consumption anomalies using geographic, token purchase, and consumption data. Built for Kenya’s energy sector regulators and utility providers.
+Energy equity intelligence for smart grid policy. EquityGrid Kenya is an MVP decision-support engine designed to create a **Dual-Savings** ecosystem:
+1. **Making the Consumer Pay Less:** By optimizing how baseline allocations are distributed, we ensure everyday consumers reliably access affordable lifeline tariffs without carrying the cost of systemic misuse.
+2. **Making EPRA (and Utilities) Pay Less:** By flagging high-draw consumption anomalies and preventing subsidy leakage, regulators drastically reduce the subsidy burden and avoid expensive peak-infrastructure upgrades.
+
+Built for Kenya’s energy sector regulators and utility providers, it leverages geographic, token purchase, and consumption data to make equitable, cost-saving decisions.
 
 ## Prerequisites
 

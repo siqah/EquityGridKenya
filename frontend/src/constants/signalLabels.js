@@ -1,74 +1,125 @@
-/** Plain-English labels for the eight model signals shown in the account drawer. */
+/** Six model variables — drawer + lookup (scores 0–100 from engine). */
 export const SIGNAL_LABELS = [
   {
-    key: 'consumptionPerCapita',
+    key: 'consumption_per_capita',
     title: 'Consumption per capita',
-    hint: 'Monthly kWh divided by estimated household size — compares to national benchmarks.',
+    hint: 'kWh per person vs national vulnerability benchmark.',
   },
   {
-    key: 'paymentConsistency',
+    key: 'payment_consistency',
     title: 'Payment consistency',
-    hint: 'How regular token purchases are versus expected patterns for the declared income band.',
+    hint: 'Fewer disconnection days each month suggests more stable ability to pay.',
   },
   {
-    key: 'peakDemandRatio',
+    key: 'nsps_status',
+    title: 'NSPS status',
+    hint: 'Registered social-protection households score as verified vulnerable.',
+  },
+  {
+    key: 'peak_demand_ratio',
     title: 'Peak demand ratio',
-    hint: 'Evening or short spikes versus average load — luxury appliances often spike harder.',
+    hint: 'Share of energy used in the evening peak window.',
   },
   {
-    key: 'upgradeHistory',
+    key: 'upgrade_history',
     title: 'Upgrade history',
-    hint: 'Service upgrades such as three-phase connections that typically follow rising capacity needs.',
+    hint: 'Three-phase and high kVA capacity indicate heavier discretionary loads.',
   },
   {
-    key: 'consumptionVariance',
-    title: 'Consumption variance',
-    hint: 'Month-to-month stability — artificial “threshold gaming” often shows unusually flat bands.',
-  },
-  {
-    key: 'activeAccounts',
-    title: 'Linked active accounts',
-    hint: 'Other meters tied to the same payer or premise cluster — useful for landlord or estate patterns.',
-  },
-  {
-    key: 'timeOfFirstUsage',
-    title: 'Time-of-use profile',
-    hint: 'When energy is drawn across the day — commercial or heavy appliance loads look different.',
-  },
-  {
-    key: 'connectionAge',
-    title: 'Connection age',
-    hint: 'Years on supply — long tenure with sudden jumps can indicate retrofitting or sub-metering.',
+    key: 'active_accounts',
+    title: 'Active accounts',
+    hint: 'Multiple meters at one address often indicate landlord or estate patterns.',
   },
 ];
 
-export const LOOKUP_SIGNAL_GROUPS = [
+/** Green / amber / red bands from raw 0–100 subscore (same as main equity bar). */
+export function tierBarClass(score) {
+  const s = Math.min(100, Math.max(0, score));
+  if (s <= 40) return 'bg-tier-green';
+  if (s <= 70) return 'bg-tier-yellow';
+  return 'bg-tier-red';
+}
+
+export const LOOKUP_CARDS = [
   {
-    key: 'geographic',
-    title: 'Geographic score',
-    icon: '🗺️',
-    score: (a) => Math.round((1 - a.poverty_index) * 40 + (a.classification === 'RED' ? 35 : 20)),
-    summary: (a) =>
-      `${a.county} sits at poverty index ${a.poverty_index.toFixed(2)} — geography ${a.poverty_index >= 0.55 ? 'supports subsidy eligibility' : 'suggests a relatively better-resourced area'}.`,
+    key: 'consumption_per_capita',
+    title: 'Consumption per capita',
+    icon: '👤',
+    score: (a) => a.variable_scores?.consumption_per_capita ?? 0,
+    line: (a) => {
+      const v = a.kwh_per_person ?? a.kwh_month / Math.max(a.ward_avg_household_size, 0.5);
+      return `${v.toFixed(1)} kWh per person vs 22 kWh national benchmark`;
+    },
   },
   {
-    key: 'appliance',
-    title: 'Appliance fingerprint',
+    key: 'payment_consistency',
+    title: 'Payment consistency',
+    icon: '🔌',
+    score: (a) => a.variable_scores?.payment_consistency ?? 0,
+    line: (a) =>
+      `${a.avg_disconnection_days_per_month?.toFixed?.(1) ?? a.avg_disconnection_days_per_month} disconnection days per month detected`,
+  },
+  {
+    key: 'nsps_status',
+    title: 'NSPS status',
+    icon: '📋',
+    score: (a) => a.variable_scores?.nsps_status ?? 0,
+    line: (a) =>
+      a.nsps_registered
+        ? 'Registered government beneficiary'
+        : 'Not on social protection register',
+  },
+  {
+    key: 'peak_demand_ratio',
+    title: 'Peak demand ratio',
+    icon: '📈',
+    score: (a) => a.variable_scores?.peak_demand_ratio ?? 0,
+    line: (a) =>
+      `${Math.round((a.peak_demand_ratio ?? 0) * 100)}% of usage during evening peak hours`,
+  },
+  {
+    key: 'upgrade_history',
+    title: 'Upgrade history',
     icon: '⚡',
-    score: (a) => Math.min(100, Math.round(a.peak_kw * 11 + a.kwh_month * 0.08)),
-    summary: (a) =>
-      `Peak ${a.peak_kw} kW vs ${a.kwh_month} kWh/month implies ${a.peak_kw > 3 ? 'heavy or simultaneous appliance draw' : 'typical residential baseload patterns'}.`,
+    score: (a) => a.variable_scores?.upgrade_history ?? 0,
+    line: (a) =>
+      a.has_three_phase
+        ? 'Three-phase connection detected'
+        : 'Standard single-phase connection',
   },
   {
-    key: 'token',
-    title: 'Token pattern',
-    icon: '💳',
-    score: (a) =>
-      Math.min(
-        100,
-        Math.round(a.token_avg_ksh / 25 + (a.token_frequency >= 12 ? 15 : a.token_frequency >= 4 ? 45 : 70)),
-      ),
-    summary: (a) =>
-      `Average purchase KSh ${a.token_avg_ksh} with ${a.token_frequency_label?.toLowerCase() || 'mixed'} cadence — ${a.token_avg_ksh > 900 ? 'consistent high liquidity' : 'consistent constrained purchasing'}.`,
+    key: 'active_accounts',
+    title: 'Active accounts',
+    icon: '🏠',
+    score: (a) => a.variable_scores?.active_accounts ?? 0,
+    line: (a) => `${a.accounts_same_address} meters registered at this address`,
   },
 ];
+
+export function buildExplanationPrompt(account) {
+  const kpp = account.kwh_per_person ?? account.kwh_month / Math.max(account.ward_avg_household_size, 0.5);
+  return `
+You are an energy equity analyst for EPRA Kenya.
+A household account has been scored by the EquityGrid system.
+
+Account details:
+- County: ${account.county}
+- Classification: ${account.classification}
+- Equity Score: ${account.final_score}/100
+- Consumption per capita: ${kpp} kWh/person
+  (national benchmark: 22 kWh/person)
+- Disconnection days per month: ${account.avg_disconnection_days_per_month}
+- NSPS registered: ${account.nsps_registered}
+- Peak demand ratio: ${account.peak_demand_ratio}
+- Three phase connection: ${account.has_three_phase}
+- Accounts at same address: ${account.accounts_same_address}
+
+In exactly 2 sentences, explain in plain English why this
+household received this classification.
+Use simple language a government minister could understand.
+Do not use technical jargon.
+Do not mention variable names or weights.
+Focus on what the data reveals about this household's
+actual economic circumstances.
+`.trim();
+}

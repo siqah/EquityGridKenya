@@ -1,5 +1,5 @@
 import PageFade from '../components/Layout/PageFade';
-import KenyaCountyMap from '../components/Map/KenyaCountyMap';
+import KenyaDeckMap from '../components/Map/KenyaDeckMap';
 import { useSyntheticData } from '../context/SyntheticDataContext';
 import {
   ResponsiveContainer,
@@ -98,20 +98,39 @@ export default function VitalsPage() {
         <StatCard
           label="National subsidy efficiency score"
           value={`${stats.efficiencyScore}%`}
-          detail="Of every KSh 100 in subsidies, this share reaches households with genuinely high poverty signals in the cohort."
+          detail="Share of GREEN households that are verified NSPS beneficiaries in the synthetic cohort (illustrative reach metric)."
           variant="hero"
         />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
-        <KenyaCountyMap countyAgg={stats.countyAgg} />
-        <div className="card flex flex-col min-h-[420px]">
+      <div className="card p-5 mb-6 border-primary/15 bg-navactive/30">
+        <div className="text-sm font-bold text-primary mb-2">Equity model — six variables (weights)</div>
+        <p className="text-xs text-muted mb-3 leading-relaxed">
+          Final score is 0–100 (higher = stronger affluence / cross-subsidy risk). Urban / rural appears on accounts for
+          context only and is not part of the weighted score.
+        </p>
+        <ul className="text-sm text-body space-y-1.5 list-disc pl-5">
+          <li>Consumption per capita proxy — 25%</li>
+          <li>Payment consistency — 22%</li>
+          <li>NSPS registration status — 18%</li>
+          <li>Peak demand ratio — 15%</li>
+          <li>Upgrade history — 12%</li>
+          <li>Active accounts at address — 8%</li>
+        </ul>
+      </div>
+
+      <div className="mb-6 h-[350px] md:h-[500px] min-h-0">
+        <KenyaDeckMap className="h-full min-h-0" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="card flex flex-col min-h-[320px]">
           <div className="px-5 py-4 border-b border-border">
             <span className="text-sm font-semibold text-primary">Classification mix</span>
             <p className="text-xs text-muted mt-1">Donut shows exact GREEN / YELLOW / RED counts.</p>
           </div>
-          <div className="p-4 flex flex-col md:flex-row items-center gap-4 flex-1">
-            <div className="w-full md:w-1/2 h-[260px]">
+          <div className="p-4 flex flex-col sm:flex-row items-center gap-4 flex-1">
+            <div className="w-full sm:w-1/2 h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -133,7 +152,7 @@ export default function VitalsPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="w-full md:w-1/2 flex flex-col gap-3">
+            <div className="w-full sm:w-1/2 flex flex-col gap-3">
               {donutData.map((d) => (
                 <div key={d.key} className="flex items-center justify-between text-sm">
                   <span className="inline-flex items-center gap-2 text-muted">
@@ -143,24 +162,28 @@ export default function VitalsPage() {
                   <span className="font-bold text-body tabular-nums">{d.value}</span>
                 </div>
               ))}
-              <div className="mt-2">
-                <div className="text-xs font-semibold text-primary mb-2">Top 5 counties by modelled leakage</div>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={leakageBars} layout="vertical" margin={{ left: 8, right: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                      <XAxis type="number" stroke="#6B7280" fontSize={11} />
-                      <YAxis type="category" dataKey="name" width={88} stroke="#6B7280" fontSize={11} />
-                      <Tooltip
-                        cursor={{ fill: '#EFF6FF' }}
-                        contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB' }}
-                      />
-                      <Bar dataKey="leakage" fill="#1B3A6B" radius={[0, 6, 6, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
             </div>
+          </div>
+        </div>
+
+        <div className="card flex flex-col min-h-[320px]">
+          <div className="px-5 py-4 border-b border-border">
+            <span className="text-sm font-semibold text-primary">Leakage by county</span>
+            <p className="text-xs text-muted mt-1">Top 5 counties by modelled leakage score.</p>
+          </div>
+          <div className="p-4 flex-1 min-h-[240px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={leakageBars} layout="vertical" margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis type="number" stroke="#6B7280" fontSize={11} />
+                <YAxis type="category" dataKey="name" width={88} stroke="#6B7280" fontSize={11} />
+                <Tooltip
+                  cursor={{ fill: '#EFF6FF' }}
+                  contentStyle={{ borderRadius: 12, border: '1px solid #E5E7EB' }}
+                />
+                <Bar dataKey="leakage" fill="#1B3A6B" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
