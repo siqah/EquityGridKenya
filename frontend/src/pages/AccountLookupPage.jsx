@@ -20,7 +20,7 @@ function personaFor(account) {
 }
 
 function staticExplanation(account) {
-  return `Although this account is recorded in ${account.county}, the usage and liquidity pattern (${account.kwh_month} kWh/month, peak ${account.peak_kw} kW, average token KSh ${account.token_avg_ksh}) ${account.classification === 'RED' ? 'aligns with higher-than-expected capacity for the vulnerability band' : 'aligns with constrained purchasing and baseload consistent with lifeline protection'}. Flags such as ${(account.flags || []).join(', ') || 'none'} are interpreted alongside county poverty index ${account.poverty_index} to keep decisions reviewable by regulators.`;
+  return `Although this account is recorded in ${account.county}, the usage and liquidity pattern (${account.kwh_month} kWh/month, peak ${account.peak_kw} kW, average token KSh ${account.token_avg_ksh}) ${account.classification === 'RED' ? 'aligns with higher-than-expected capacity for the vulnerability band' : 'aligns with constrained purchasing and baseload consistent with lifeline protection'}. Flags such as ${(account.flags || []).join(', ') || 'none'} are interpreted alongside county baseline index ${account.baseline_index} to keep decisions reviewable by regulators.`;
 }
 
 function perCapitaBox(account) {
@@ -51,7 +51,7 @@ function perCapitaBox(account) {
         <li>
           <span className="text-muted">Verdict:</span>{' '}
           <span className={`font-semibold ${above ? 'text-tier-red' : 'text-tier-green'}`}>
-            {above ? 'Above benchmark — review for luxury baseload' : 'At or below benchmark — consistent with vulnerability'}
+            {above ? 'Above benchmark — review for high-draw baseload' : 'At or below benchmark — consistent with baseline expectations'}
           </span>
         </li>
       </ul>

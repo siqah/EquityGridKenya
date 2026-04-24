@@ -25,9 +25,9 @@ from app.database import Base
 
 class Classification(enum.Enum):
     """Equity classification categories."""
-    GREEN = "GREEN"    # Subsidize — genuine energy poverty
+    GREEN = "GREEN"    # Subsidize — priority allocation
     YELLOW = "YELLOW"  # Standard — no adjustment needed
-    RED = "RED"        # Luxury/Anomaly — cross-subsidy contributor
+    RED = "RED"        # High-Draw/Anomaly — cross-subsidy contributor
 
 
 class EquityResult(Base):
@@ -42,7 +42,7 @@ class EquityResult(Base):
 
     # Geographic Signal
     county = Column(String(50), nullable=False)
-    poverty_index = Column(Float, nullable=False)
+    baseline_index = Column(Float, nullable=False)
 
     # Token Purchase Signal
     token_avg_amount = Column(Float, nullable=False)      # KSh per purchase

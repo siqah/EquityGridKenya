@@ -68,8 +68,8 @@ function AccountDrawer({ account, onClose }) {
               <span className="text-muted">({account.token_frequency}/mo)</span>
             </div>
             <div>
-              <span className="text-muted">Poverty index:</span>{' '}
-              <span className="font-semibold">{account.poverty_index}</span>
+              <span className="text-muted">Baseline index:</span>{' '}
+              <span className="font-semibold">{account.baseline_index}</span>
             </div>
           </div>
 

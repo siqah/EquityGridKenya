@@ -8,12 +8,12 @@ function aggregateByCounty(accounts) {
   accounts.forEach((a) => {
     const key = a.county_base || a.county.split('(')[0].trim();
     if (!m.has(key)) {
-      m.set(key, { total: 0, GREEN: 0, YELLOW: 0, RED: 0, povertySum: 0, leakageScore: 0 });
+      m.set(key, { total: 0, GREEN: 0, YELLOW: 0, RED: 0, baselineSum: 0, leakageScore: 0 });
     }
     const row = m.get(key);
     row.total += 1;
     row[a.classification] += 1;
-    row.povertySum += a.poverty_index;
+    row.baselineSum += a.baseline_index;
     if (a.classification === 'RED') {
       row.leakageScore += a.score * a.kwh_month * 0.01 + a.peak_kw * 50;
     }
@@ -31,7 +31,7 @@ function aggregateByCounty(accounts) {
       GREEN: v.GREEN,
       YELLOW: v.YELLOW,
       RED: v.RED,
-      poverty_index: Math.round((v.povertySum / v.total) * 1000) / 1000,
+      baseline_index: Math.round((v.baselineSum / v.total) * 1000) / 1000,
       dominant,
       leakageScore: v.leakageScore,
     };
@@ -63,7 +63,7 @@ function computeKpis(accounts) {
 
   const revenueBalance = leakageDetected - subsidyManaged;
 
-  const genuinelyVulnerable = greens.filter((g) => g.poverty_index >= 0.35).length;
+  const genuinelyVulnerable = greens.filter((g) => g.baseline_index >= 0.35).length;
   const efficiencyScore = greens.length
     ? Math.min(
       96,
@@ -92,7 +92,7 @@ function computeKpis(accounts) {
     efficiencyScore,
     countyAgg,
     topLeakageCounties,
-    turkana_exceptions: accounts.filter((a) => a.flags?.includes('LUXURY_IN_POVERTY_ZONE')).length,
+    turkana_exceptions: accounts.filter((a) => a.flags?.includes('HIGH_DRAW_IN_PRIORITY_ZONE')).length,
     counties_covered: new Set(accounts.map((a) => a.county_base || a.county.split('(')[0].trim())).size,
   };
 }

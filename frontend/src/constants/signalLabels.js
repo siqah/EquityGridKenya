@@ -13,7 +13,7 @@ export const SIGNAL_LABELS = [
   {
     key: 'peakDemandRatio',
     title: 'Peak demand ratio',
-    hint: 'Evening or short spikes versus average load — luxury appliances often spike harder.',
+    hint: 'Evening or short spikes versus average load — high-draw appliances often spike harder.',
   },
   {
     key: 'upgradeHistory',
@@ -47,9 +47,9 @@ export const LOOKUP_SIGNAL_GROUPS = [
     key: 'geographic',
     title: 'Geographic score',
     icon: '🗺️',
-    score: (a) => Math.round((1 - a.poverty_index) * 40 + (a.classification === 'RED' ? 35 : 20)),
+    score: (a) => Math.round((1 - a.baseline_index) * 40 + (a.classification === 'RED' ? 35 : 20)),
     summary: (a) =>
-      `${a.county} sits at poverty index ${a.poverty_index.toFixed(2)} — geography ${a.poverty_index >= 0.55 ? 'supports subsidy eligibility' : 'suggests a relatively better-resourced area'}.`,
+      `${a.county} sits at baseline index ${a.baseline_index.toFixed(2)} — geography ${a.baseline_index >= 0.55 ? 'supports subsidy eligibility' : 'suggests a relatively better-resourced area'}.`,
   },
   {
     key: 'appliance',

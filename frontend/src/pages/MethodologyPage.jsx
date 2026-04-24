@@ -9,6 +9,16 @@ export default function MethodologyPage() {
         oversight.
       </p>
 
+      <section className="card p-5 bg-navactive/40 border-primary/10">
+        <h2 className="text-lg font-bold text-primary mb-2">The Dual-Savings Objective</h2>
+        <p className="text-muted mb-2">
+          <strong>1. Making the Consumer Pay Less:</strong> By optimizing how baseline allocations are distributed, the model ensures everyday consumers reliably access affordable lifeline tariffs without carrying the cost of systemic misuse.
+        </p>
+        <p className="text-muted">
+          <strong>2. Making EPRA Pay Less:</strong> By detecting high-draw anomalies and stopping subsidy leakage, regulators dramatically reduce the financial burden of the subsidy pool and defer expensive peak-load infrastructure upgrades.
+        </p>
+      </section>
+
       <section className="card p-5 space-y-3">
         <h2 className="text-lg font-bold text-primary">Layer 1 — Scoring model (supervised ML)</h2>
         <p className="text-muted">

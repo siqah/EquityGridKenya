@@ -39,20 +39,20 @@ app = FastAPI(
     description=(
         "**Energy Equity Intelligence for Smart Grid Policy**\n\n"
         "EquityGrid Kenya is an MVP decision-support engine that identifies "
-        "energy poverty patterns and flags luxury consumption anomalies using "
+        "priority baseline patterns and flags high-draw consumption anomalies using "
         "geographic, token purchase, and consumption data.\n\n"
         "Built for Kenya's energy sector regulators and utility providers.\n\n"
         "### Classification System\n"
-        "- 🟢 **GREEN** (Score 70-100): Subsidize — genuine energy poverty\n"
+        "- 🟢 **GREEN** (Score 70-100): Subsidize — priority allocation\n"
         "- 🟡 **YELLOW** (Score 40-69): Standard — no adjustment\n"
-        "- 🔴 **RED** (Score 0-39): Luxury/Anomaly — cross-subsidy contributor\n\n"
+        "- 🔴 **RED** (Score 0-39): High-Draw/Anomaly — cross-subsidy contributor\n\n"
         "### Signals (weighted)\n"
-        "1. **Variable 5 — Poverty index** — County headcount (KNBS / WB), 25%\n"
+        "1. **Variable 5 — Baseline index** — County headcount (KNBS / WB), 25%\n"
         "2. **Token patterns** — Purchase frequency and amount, 30%\n"
         "3. **Variable 1 — Monthly kWh band** — Lifeline vs high consumption, 10%\n"
         "4. **Variable 2 — Location type** — KNBS Census Vol II–linked urban/rural "
         "bands via hashed coordinates (optional lat/lon), 10%\n"
-        "5. **Peak load profile** — Demand spikes / luxury appliances, 25%\n"
+        "5. **Peak load profile** — Demand spikes / high-draw appliances, 25%\n"
     ),
     version=settings.APP_VERSION,
     lifespan=lifespan,

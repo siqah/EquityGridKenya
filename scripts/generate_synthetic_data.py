@@ -3,10 +3,10 @@
 EquityGrid Kenya — Synthetic Dataset Generator
 
 Generates 100 realistic Kenyan household accounts with varying
-poverty levels, token purchase patterns, and consumption profiles.
+baseline allocations, token purchase patterns, and consumption profiles.
 
-Includes 5 "Turkana Exception" accounts — luxury consumption in
-high-poverty zones that must be flagged RED.
+Includes 5 "Turkana Exception" accounts — high-draw consumption in
+high-priority zones that must be flagged RED.
 
 This script writes DIRECTLY to the database using the scoring engine
 (no HTTP/requests dependency needed).
@@ -34,9 +34,9 @@ def generate_account_id(prefix: str, index: int) -> str:
     return f"KPLC-{prefix}-{index:04d}-2024"
 
 
-def generate_deep_poverty_accounts(count: int = 30) -> list[dict]:
+def generate_high_priority_accounts(count: int = 30) -> list[dict]:
     """
-    Scenario 1: Deep poverty, lifeline usage.
+    Scenario 1: High priority, lifeline usage.
     Counties: Turkana, Mandera, Samburu, Wajir, Marsabit, etc.
     Expected classification: GREEN
     """
@@ -56,9 +56,9 @@ def generate_deep_poverty_accounts(count: int = 30) -> list[dict]:
     return accounts
 
 
-def generate_moderate_poverty_accounts(count: int = 25) -> list[dict]:
+def generate_moderate_priority_accounts(count: int = 25) -> list[dict]:
     """
-    Scenario 2: Moderate poverty, standard usage.
+    Scenario 2: Moderate priority, standard usage.
     Counties: Kilifi, Busia, Kisumu, Kwale, Kakamega, etc.
     Expected classification: YELLOW
     """
@@ -100,9 +100,9 @@ def generate_urban_standard_accounts(count: int = 20) -> list[dict]:
     return accounts
 
 
-def generate_urban_luxury_accounts(count: int = 15) -> list[dict]:
+def generate_urban_high_draw_accounts(count: int = 15) -> list[dict]:
     """
-    Scenario 4: Urban luxury consumption.
+    Scenario 4: Urban high-draw consumption.
     Counties: Nairobi, Kiambu.
     Expected classification: RED
     """
@@ -125,12 +125,12 @@ def generate_urban_luxury_accounts(count: int = 15) -> list[dict]:
 def generate_turkana_exception_accounts(count: int = 5) -> list[dict]:
     """
     Scenario 5: TURKANA EXCEPTION 🚨
-    High-poverty county BUT luxury-level consumption.
+    High-priority county BUT high-draw consumption.
     This is the critical anomaly detection case.
 
-    These accounts are in Turkana (poverty index 87.5) but have:
+    These accounts are in Turkana (baseline index 87.5) but have:
     - Very high kWh consumption (400-900)
-    - Heavy load spikes (>= 8 kW) indicating luxury appliances
+    - Heavy load spikes (>= 8 kW) indicating high-draw appliances
     - Large token purchases (KSh 8000-20000)
 
     Expected classification: RED with TURKANA_EXCEPTION flag
@@ -156,7 +156,7 @@ def generate_edge_case_accounts(count: int = 5) -> list[dict]:
     These test the scoring boundaries.
     """
     accounts = [
-        # Borderline GREEN/YELLOW — moderate poverty, very low consumption
+        # Borderline GREEN/YELLOW — moderate priority, very low consumption
         {
             "account_id": generate_account_id("EC", 1),
             "county": "Busia",
@@ -174,7 +174,7 @@ def generate_edge_case_accounts(count: int = 5) -> list[dict]:
             "total_kwh": 280.0,
             "peak_load_kw": 4.5,
         },
-        # Near-Turkana-Exception — high poverty, moderate consumption, just under spike threshold
+        # Near-Turkana-Exception — high priority, moderate consumption, just under spike threshold
         {
             "account_id": generate_account_id("EC", 3),
             "county": "Marsabit",
@@ -192,7 +192,7 @@ def generate_edge_case_accounts(count: int = 5) -> list[dict]:
             "total_kwh": 0.0,
             "peak_load_kw": 0.0,
         },
-        # Unknown county — tests default poverty index
+        # Unknown county — tests default baseline index
         {
             "account_id": generate_account_id("EC", 5),
             "county": "Unknown County",
@@ -227,10 +227,10 @@ def main():
     all_accounts = []
 
     scenarios = [
-        ("Deep Poverty (Lifeline)", generate_deep_poverty_accounts, 30),
-        ("Moderate Poverty (Standard)", generate_moderate_poverty_accounts, 25),
+        ("High Priority (Lifeline)", generate_high_priority_accounts, 30),
+        ("Moderate Priority (Standard)", generate_moderate_priority_accounts, 25),
         ("Urban Standard", generate_urban_standard_accounts, 20),
-        ("Urban Luxury", generate_urban_luxury_accounts, 15),
+        ("Urban High-Draw", generate_urban_high_draw_accounts, 15),
         ("🚨 TURKANA EXCEPTION", generate_turkana_exception_accounts, 5),
         ("Edge Cases (Borderline)", generate_edge_case_accounts, 5),
     ]
@@ -277,7 +277,7 @@ def main():
 
         if existing:
             existing.county = result.county
-            existing.poverty_index = result.poverty_index
+            existing.baseline_index = result.baseline_index
             existing.token_avg_amount = result.token_avg_amount
             existing.token_frequency = result.token_frequency
             existing.total_kwh = result.total_kwh
@@ -301,7 +301,7 @@ def main():
             db_result = EquityResult(
                 account_id_hash=result.account_id_hash,
                 county=result.county,
-                poverty_index=result.poverty_index,
+                baseline_index=result.baseline_index,
                 token_avg_amount=result.token_avg_amount,
                 token_frequency=result.token_frequency,
                 total_kwh=result.total_kwh,
@@ -346,7 +346,7 @@ def main():
     print(f"\n  Classification Summary:")
     print(f"    🟢 GREEN  (Subsidize):      {summary['GREEN']}")
     print(f"    🟡 YELLOW (Standard):       {summary['YELLOW']}")
-    print(f"    🔴 RED    (Luxury/Anomaly): {summary['RED']}")
+    print(f"    🔴 RED    (High-Draw/Anomaly): {summary['RED']}")
 
     # Verify Turkana Exceptions
     turkana_exceptions = [r for r in results if "TURKANA_EXCEPTION" in r.flags]
@@ -383,7 +383,7 @@ def main():
             {
                 "account_id_hash": r.account_id_hash,
                 "county": r.county,
-                "poverty_index": r.poverty_index,
+                "baseline_index": r.baseline_index,
                 "equity_score": r.equity_score,
                 "classification": r.classification,
                 "suggested_tariff_multiplier": r.suggested_tariff_multiplier,

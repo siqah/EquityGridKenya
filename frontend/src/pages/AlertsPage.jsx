@@ -3,8 +3,8 @@ import PageFade from '../components/Layout/PageFade';
 import { useSyntheticData } from '../context/SyntheticDataContext';
 
 function flagStyle(flag) {
-  if (flag === 'LUXURY_IN_POVERTY_ZONE') return 'bg-purple-50 text-purple-800 border-purple-200';
-  if (flag === 'LUXURY_APPLIANCE_DETECTED') return 'bg-red-50 text-tier-red border-red-200';
+  if (flag === 'HIGH_DRAW_IN_PRIORITY_ZONE') return 'bg-purple-50 text-purple-800 border-purple-200';
+  if (flag === 'HIGH_DRAW_APPLIANCE_DETECTED') return 'bg-red-50 text-tier-red border-red-200';
   if (flag === 'LANDLORD_PATTERN') return 'bg-orange-50 text-orange-800 border-orange-200';
   if (flag === 'THRESHOLD_GAMING') return 'bg-amber-50 text-amber-900 border-amber-200';
   if (flag.startsWith('MULTI_ACCOUNT')) return 'bg-red-950/10 text-red-950 border-red-900/30';
@@ -13,8 +13,8 @@ function flagStyle(flag) {
 }
 
 function explainRed(account) {
-  if (account.flags?.includes('LUXURY_IN_POVERTY_ZONE')) {
-    return 'High draw and liquidity signals sit inside one of Kenya’s poorest counties — classic cross-subsidy leakage.';
+  if (account.flags?.includes('HIGH_DRAW_IN_PRIORITY_ZONE')) {
+    return 'High draw and liquidity signals sit inside one of Kenya’s highest priority counties — classic cross-subsidy leakage.';
   }
   if (account.flags?.includes('THRESHOLD_GAMING')) {
     return 'Consumption hugs subsidy thresholds month after month — statistically rare for genuine vulnerability.';
@@ -22,8 +22,8 @@ function explainRed(account) {
   if (account.flags?.includes('LANDLORD_PATTERN') || account.flags?.some((f) => f.includes('MULTI_ACCOUNT'))) {
     return 'Meter cluster resembles landlord or multi-unit billing — capacity is aggregated but billed like a single household.';
   }
-  if (account.flags?.includes('LUXURY_APPLIANCE_DETECTED')) {
-    return 'Peak demand and kWh bands line up with simultaneous heavy appliances, not lifeline baseload.';
+  if (account.flags?.includes('HIGH_DRAW_APPLIANCE_DETECTED')) {
+    return 'Peak demand and kWh bands line up with simultaneous high-draw appliances, not lifeline baseload.';
   }
   return 'Overall RED profile: above-benchmark consumption and liquidity versus declared vulnerability band.';
 }
@@ -46,7 +46,7 @@ export default function AlertsPage() {
           <span className="text-tier-red">KSh {stats.leakageDetected.toLocaleString()}</span> in annual leakage (model)
         </p>
         <p className="text-sm text-muted mt-1">
-          Synthetic fraud / luxury layer — use Policy Simulator to test how fees recover this pool.
+          Synthetic anomaly / high-draw layer — use Policy Simulator to test how fees recover this pool.
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export default function AlertsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
             {priority.map((a) => {
-              const primary = a.flags?.[0] || 'LUXURY_APPLIANCE_DETECTED';
+              const primary = a.flags?.[0] || 'HIGH_DRAW_APPLIANCE_DETECTED';
               return (
                 <div key={a.account_hash} className="card p-4 flex flex-col gap-2">
                   <div className="font-mono text-xs font-bold text-primary">{a.account_hash}</div>
@@ -95,7 +95,7 @@ export default function AlertsPage() {
                   <th>kWh / month</th>
                   <th>Peak kW</th>
                   <th>Token avg</th>
-                  <th>Poverty index</th>
+                  <th>Baseline index</th>
                   <th>Flags</th>
                 </tr>
               </thead>
@@ -109,7 +109,7 @@ export default function AlertsPage() {
                     <td className="text-sm">{r.kwh_month}</td>
                     <td className="text-sm">{r.peak_kw}</td>
                     <td className="text-sm">KSh {r.token_avg_ksh}</td>
-                    <td className="text-sm">{r.poverty_index}</td>
+                    <td className="text-sm">{r.baseline_index}</td>
                     <td className="text-xs">
                       <div className="flex flex-wrap gap-1">
                         {(r.flags || []).map((f) => (

@@ -53,7 +53,7 @@ class AccountInput(BaseModel):
     peak_load_kw: float = Field(
         ...,
         ge=0,
-        description="Peak instantaneous load in kW (luxury appliance indicator)",
+        description="Peak instantaneous load in kW (high-draw appliance indicator)",
         examples=[0.5, 2.0, 8.0],
     )
     latitude: Optional[float] = Field(
@@ -102,7 +102,7 @@ class BatchScoreRequest(BaseModel):
 class SignalBreakdown(BaseModel):
     """Detailed breakdown of individual signal scores."""
 
-    geographic_score: float = Field(..., description="Variable 5 — county poverty index (0-100)")
+    geographic_score: float = Field(..., description="Variable 5 — county baseline index (0-100)")
     token_score: float = Field(..., description="Token purchase pattern signal (0-100)")
     monthly_kwh_equity_score: float = Field(
         ...,
@@ -134,7 +134,7 @@ class EquityScoreResponse(BaseModel):
     )
     classification: str = Field(
         ...,
-        description="GREEN (subsidize), YELLOW (standard), or RED (luxury/anomaly)",
+        description="GREEN (subsidize), YELLOW (standard), or RED (high-draw/anomaly)",
     )
     suggested_tariff_multiplier: float = Field(
         ...,
@@ -178,7 +178,7 @@ class ResultRecord(BaseModel):
     id: int
     account_id_hash: str
     county: str
-    poverty_index: float
+    baseline_index: float
     token_avg_amount: float
     token_frequency: int
     total_kwh: float

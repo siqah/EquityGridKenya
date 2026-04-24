@@ -1,21 +1,21 @@
 """
 EquityGrid Kenya — Kenya-Specific Reference Data & Thresholds
 
-County-level poverty indices based on KNBS Comprehensive Poverty Report
+County-level baseline indices based on KNBS Comprehensive Poverty Report
 and World Bank Kenya Poverty Assessment. These are approximate headcount
-poverty rates used for the Geographic Signal.
+rates used for the Geographic Signal.
 
 Token and consumption thresholds are based on KPLC tariff structures
 and EPRA consumption baselines for Kenyan households.
 """
 
-# ─── County Poverty Index (0-100) ────────────────────────────────────────────
+# ─── County Baseline Index (0-100) ────────────────────────────────────────────
 # Source: KNBS Comprehensive Poverty Report 2020, World Bank Kenya Assessment
-# Values represent approximate overall poverty headcount rate (%)
-# Higher value = deeper poverty = more subsidy needed
+# Values represent approximate overall baseline need rate (%)
+# Higher value = deeper need = more subsidy priority
 
-COUNTY_POVERTY_INDEX: dict[str, float] = {
-    # ── Arid & Semi-Arid Lands (ASAL) — High Poverty ──
+COUNTY_BASELINE_INDEX: dict[str, float] = {
+    # ── Arid & Semi-Arid Lands (ASAL) — High Priority ──
     "Turkana": 87.5,
     "Mandera": 85.8,
     "Wajir": 84.2,
@@ -26,7 +26,7 @@ COUNTY_POVERTY_INDEX: dict[str, float] = {
     "Isiolo": 65.8,
     "West Pokot": 66.4,
 
-    # ── Coastal & Western — Medium-High Poverty ──
+    # ── Coastal & Western — Medium-High Priority ──
     "Kilifi": 62.1,
     "Kwale": 60.7,
     "Lamu": 55.2,
@@ -41,7 +41,7 @@ COUNTY_POVERTY_INDEX: dict[str, float] = {
     "Kisii": 44.5,
     "Nyamira": 43.2,
 
-    # ── Central & Rift Valley — Medium Poverty ──
+    # ── Central & Rift Valley — Medium Priority ──
     "Kisumu": 45.2,
     "Nandi": 38.7,
     "Uasin Gishu": 35.4,
@@ -61,20 +61,20 @@ COUNTY_POVERTY_INDEX: dict[str, float] = {
     "Narok": 44.7,
     "Kajiado": 30.5,
 
-    # ── Urban Centers — Lower Poverty ──
+    # ── Urban Centers — Lower Priority ──
     "Machakos": 34.2,
     "Makueni": 41.3,
     "Kitui": 55.8,
 
-    # ── Major Urban — Low Poverty ──
+    # ── Major Urban — Low Priority ──
     "Mombasa": 33.4,
     "Nakuru": 28.7,
     "Kiambu": 22.1,
     "Nairobi": 16.7,
 }
 
-# Default poverty index for unknown counties
-DEFAULT_POVERTY_INDEX: float = 50.0
+# Default baseline index for unknown counties
+DEFAULT_BASELINE_INDEX: float = 50.0
 
 
 # ─── Token Purchase Thresholds ───────────────────────────────────────────────
@@ -106,21 +106,21 @@ CONSUMPTION_HIGH_KWH: float = 500.0       # High consumption indicator
 CONSUMPTION_MAX_KWH: float = 1000.0       # Max for normalization
 
 # Load spike threshold (instantaneous kW)
-LOAD_SPIKE_THRESHOLD_KW: float = 5.0      # Indicates luxury appliances (AC, heater, oven)
-LOAD_SPIKE_HEAVY_KW: float = 8.0          # Heavy luxury load
+LOAD_SPIKE_THRESHOLD_KW: float = 5.0      # Indicates high-draw appliances (AC, heater, oven)
+LOAD_SPIKE_HEAVY_KW: float = 8.0          # Heavy high-draw load
 
 
 # ─── Turkana Exception Parameters ───────────────────────────────────────────
-# High-poverty counties where luxury consumption is an anomaly flag
+# High-priority counties where high-draw consumption is an anomaly flag
 
-HIGH_POVERTY_THRESHOLD: float = 60.0       # Counties above this are "high poverty"
+HIGH_PRIORITY_THRESHOLD: float = 60.0       # Counties above this are "high priority"
 TURKANA_EXCEPTION_OVERRIDE_KWH: float = 200.0  # kWh threshold for override
 TURKANA_EXCEPTION_OVERRIDE_KW: float = 5.0     # Peak load threshold for override
 
 
-# ─── Counties classified as high-poverty zones ──────────────────────────────
+# ─── Counties classified as high-priority zones ──────────────────────────────
 
-HIGH_POVERTY_COUNTIES: list[str] = [
-    county for county, index in COUNTY_POVERTY_INDEX.items()
-    if index >= HIGH_POVERTY_THRESHOLD
+HIGH_PRIORITY_COUNTIES: list[str] = [
+    county for county, index in COUNTY_BASELINE_INDEX.items()
+    if index >= HIGH_PRIORITY_THRESHOLD
 ]

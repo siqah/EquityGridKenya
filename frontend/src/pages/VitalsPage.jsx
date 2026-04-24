@@ -65,7 +65,7 @@ export default function VitalsPage() {
       <div className="mb-6">
         <p className="text-sm text-muted">
           Live synthetic cohort · {stats.total_accounts.toLocaleString()} accounts ·{' '}
-          {stats.counties_covered} counties · {stats.turkana_exceptions} luxury-in-poverty flags
+          {stats.counties_covered} counties · {stats.turkana_exceptions} high-draw-in-priority flags
         </p>
       </div>
 
@@ -98,7 +98,7 @@ export default function VitalsPage() {
         <StatCard
           label="National subsidy efficiency score"
           value={`${stats.efficiencyScore}%`}
-          detail="Of every KSh 100 in subsidies, this share reaches households with genuinely high poverty signals in the cohort."
+          detail="Of every KSh 100 in subsidies, this share reaches households with genuinely high priority baseline signals in the cohort."
           variant="hero"
         />
       </div>

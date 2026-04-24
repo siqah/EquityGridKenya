@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./equitygrid.db"
 
     # Scoring Engine Weights (must sum to 1.0)
-    # Poverty index (Variable 5) — KNBS / WB county headcount
+    # Baseline index (Variable 5) — KNBS / WB county headcount
     WEIGHT_GEOGRAPHIC: float = 0.25
     # Token purchase pattern
     WEIGHT_TOKEN: float = 0.30
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     WEIGHT_MONTHLY_KWH: float = 0.10
     # Variable 2 — KNBS-linked location type (hashed geospatial layer)
     WEIGHT_LOCATION: float = 0.10
-    # Peak load / luxury appliance spike signal (residual consumption layer)
+    # Peak load / high-draw appliance spike signal (residual consumption layer)
     WEIGHT_LOAD_PROFILE: float = 0.25
 
     # Pepper for geographic-layer coordinate hashing (set in production)
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # Classification Thresholds
     THRESHOLD_GREEN: float = 70.0   # Score >= 70 → GREEN (subsidize)
     THRESHOLD_YELLOW: float = 40.0  # Score >= 40 → YELLOW (standard)
-    # Score < 40 → RED (luxury/anomaly)
+    # Score < 40 → RED (high-draw/anomaly)
 
     # Tariff Multipliers
     TARIFF_GREEN: float = 0.60

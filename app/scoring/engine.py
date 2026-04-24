@@ -3,14 +3,14 @@ EquityGrid Kenya — Equity Scoring Engine
 
 Multi-signal weighted score with explicit variables:
 
-  Variable 5 — County poverty index (KNBS / WB)     : 25%
+  Variable 5 — County baseline index (KNBS / WB)    : 25%
   Token purchase pattern                              : 30%
   Variable 1 — Monthly kWh band (lifeline vs high)    : 10%
   Variable 2 — Location type (KNBS Census Vol II–linked, hashed coords) : 10%
-  Peak load / spike profile (luxury appliance signal) : 25%
+  Peak load / spike profile (high-draw appliance signal) : 25%
 
-CRITICAL: The "Turkana Exception" — a household in a high-poverty zone
-with luxury-level consumption is flagged RED regardless of other signals.
+CRITICAL: The "Turkana Exception" — a household in a high-priority zone
+with high-draw consumption is flagged RED regardless of other signals.
 """
 
 from __future__ import annotations
@@ -26,12 +26,12 @@ from app.scoring.constants import (
     CONSUMPTION_LIFELINE_KWH,
     CONSUMPTION_MAX_KWH,
     CONSUMPTION_STANDARD_KWH,
-    COUNTY_POVERTY_INDEX,
-    DEFAULT_POVERTY_INDEX,
+    COUNTY_BASELINE_INDEX,
+    DEFAULT_BASELINE_INDEX,
     LOAD_SPIKE_THRESHOLD_KW,
     TOKEN_AMOUNT_MAX,
     TOKEN_FREQUENCY_MAX,
-    HIGH_POVERTY_THRESHOLD,
+    HIGH_PRIORITY_THRESHOLD,
     TURKANA_EXCEPTION_OVERRIDE_KWH,
     TURKANA_EXCEPTION_OVERRIDE_KW,
 )
@@ -111,7 +111,7 @@ class ScoringResult:
 
     account_id_hash: str
     county: str
-    poverty_index: float
+    baseline_index: float
 
     # Individual signal scores (0-100)
     geographic_score: float
@@ -141,14 +141,14 @@ class ScoringResult:
     has_load_spike: bool
 
 
-def _calculate_geographic_score(poverty_index: float) -> float:
+def _calculate_geographic_score(baseline_index: float) -> float:
     """
-    Variable 5 — County poverty index score.
+    Variable 5 — County baseline index score.
 
-    Direct mapping from county poverty index.
-    Higher poverty → higher score → more likely GREEN (needs subsidy).
+    Direct mapping from county baseline index.
+    Higher index → higher score → more likely GREEN (needs subsidy).
     """
-    return _clamp(poverty_index)
+    return _clamp(baseline_index)
 
 
 def _calculate_token_score(
@@ -201,7 +201,7 @@ def _calculate_monthly_kwh_equity_score(total_kwh: float) -> float:
 
 def _calculate_load_profile_score(peak_load_kw: float) -> float:
     """
-    Peak instantaneous load — luxury appliance / demand-spike signal only.
+    Peak instantaneous load — high-draw appliance / demand-spike signal only.
 
     Monthly kWh is handled separately (Variable 1) at a capped weight.
     """
@@ -213,13 +213,13 @@ def _calculate_load_profile_score(peak_load_kw: float) -> float:
 
 def _detect_turkana_exception(
     county: str,
-    poverty_index: float,
+    baseline_index: float,
     total_kwh: float,
     peak_load_kw: float,
 ) -> bool:
-    """Luxury consumption in a high-poverty zone → forced RED."""
+    """High-draw consumption in a high-priority zone → forced RED."""
     return (
-        poverty_index >= HIGH_POVERTY_THRESHOLD
+        baseline_index >= HIGH_PRIORITY_THRESHOLD
         and total_kwh > TURKANA_EXCEPTION_OVERRIDE_KWH
         and peak_load_kw >= TURKANA_EXCEPTION_OVERRIDE_KW
     )
@@ -229,12 +229,12 @@ def explain_score(result: ScoringResult) -> str:
     """
     Human-readable classification rationale referencing Variable 1, 2, and 5.
     """
-    if result.poverty_index >= HIGH_POVERTY_THRESHOLD:
-        poverty_phrase = "High poverty location (Variable 5)"
-    elif result.poverty_index >= 40.0:
-        poverty_phrase = "Moderate poverty context (Variable 5)"
+    if result.baseline_index >= HIGH_PRIORITY_THRESHOLD:
+        priority_phrase = "High baseline need (Variable 5)"
+    elif result.baseline_index >= 40.0:
+        priority_phrase = "Moderate baseline need (Variable 5)"
     else:
-        poverty_phrase = "Lower county poverty headcount (Variable 5)"
+        priority_phrase = "Lower county baseline need (Variable 5)"
 
     lt = result.location_type.lower().replace("_", "-")
     if lt == "urban":
@@ -257,10 +257,10 @@ def explain_score(result: ScoringResult) -> str:
     if result.classification == "GREEN":
         balance_word = "reinforced by"
     elif result.classification == "RED":
-        balance_word = "pulled toward luxury risk by"
+        balance_word = "pulled toward high-draw risk by"
 
     return (
-        f"Classified as {result.classification}: {poverty_phrase} {balance_word} "
+        f"Classified as {result.classification}: {priority_phrase} {balance_word} "
         f"{loc_phrase} and {cons_phrase}."
     )
 
@@ -280,7 +280,7 @@ def equity_orm_to_scoring_result(row: Any) -> ScoringResult:
     return ScoringResult(
         account_id_hash=row.account_id_hash,
         county=row.county,
-        poverty_index=row.poverty_index,
+        baseline_index=row.baseline_index,
         geographic_score=row.geographic_score,
         token_score=row.token_score,
         monthly_kwh_equity_score=float(
@@ -325,11 +325,11 @@ def calculate_equity_score(
     account_id_hash = hash_account_id(account_id)
 
     county_normalized = county.strip().title()
-    poverty_index = COUNTY_POVERTY_INDEX.get(county_normalized, DEFAULT_POVERTY_INDEX)
+    baseline_index = COUNTY_BASELINE_INDEX.get(county_normalized, DEFAULT_BASELINE_INDEX)
 
     has_load_spike = peak_load_kw >= LOAD_SPIKE_THRESHOLD_KW
 
-    geographic_score = _calculate_geographic_score(poverty_index)
+    geographic_score = _calculate_geographic_score(baseline_index)
     token_score = _calculate_token_score(token_avg_amount, token_frequency)
     monthly_kwh_equity_score = _calculate_monthly_kwh_equity_score(total_kwh)
     load_profile_score = _calculate_load_profile_score(peak_load_kw)
@@ -367,7 +367,7 @@ def calculate_equity_score(
         tariff = settings.TARIFF_RED
 
     is_turkana_exception = _detect_turkana_exception(
-        county_normalized, poverty_index, total_kwh, peak_load_kw
+        county_normalized, baseline_index, total_kwh, peak_load_kw
     )
 
     if is_turkana_exception:
@@ -378,7 +378,7 @@ def calculate_equity_score(
     return ScoringResult(
         account_id_hash=account_id_hash,
         county=county_normalized,
-        poverty_index=poverty_index,
+        baseline_index=baseline_index,
         geographic_score=round(geographic_score, 2),
         token_score=round(token_score, 2),
         monthly_kwh_equity_score=round(monthly_kwh_equity_score, 2),
