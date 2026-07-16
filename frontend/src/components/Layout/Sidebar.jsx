@@ -3,13 +3,13 @@ import { useDashboardMode } from '../../context/DashboardModeContext';
 import { useSyntheticData } from '../../context/SyntheticDataContext';
 
 const regulatorNav = [
-  { path: '/', label: 'Vitals Overview', icon: '📊' },
-  { path: '/accounts', label: 'Account Intelligence', icon: '🔍' },
-  { path: '/alerts', label: 'Anomaly Alerts', icon: '🚨' },
-  { path: '/simulator', label: 'Policy Simulator', icon: '⚖️' },
-  { path: '/lookup', label: 'Account Lookup', icon: '🔎' },
-  { path: '/my-energy-report', label: 'My Energy Report', icon: '🏠' },
-  { path: '/methodology', label: 'How AI Works', icon: '🧠' },
+  { path: '/', label: 'Vitals Overview', icon: 'VO' },
+  { path: '/accounts', label: 'Account Intelligence', icon: 'AI' },
+  { path: '/alerts', label: 'Anomaly Alerts', icon: 'AA' },
+  { path: '/simulator', label: 'Policy Simulator', icon: 'PS' },
+  { path: '/lookup', label: 'Account Lookup', icon: 'AL' },
+  { path: '/my-energy-report', label: 'My Energy Report', icon: 'MR' },
+  { path: '/methodology', label: 'Methodology', icon: 'MW' },
 ];
 
 export default function Sidebar({ mobileOpen, onClose }) {
@@ -18,23 +18,23 @@ export default function Sidebar({ mobileOpen, onClose }) {
   const { accounts } = useSyntheticData();
 
   const householdNav = [
-    { path: '/my-account', label: 'My Home Dashboard', icon: '🏠' },
+    { path: '/my-account', label: 'My Home Dashboard', icon: 'HD' },
     {
       path: householdAccountHash
         ? `/household/${encodeURIComponent(householdAccountHash)}`
         : '/my-energy-report',
       label: 'Detailed Energy Report',
-      icon: '📋',
+      icon: 'ER',
     },
-    { path: '/lookup', label: 'Account Lookup', icon: '🔎' },
+    { path: '/lookup', label: 'Account Lookup', icon: 'AL' },
   ];
 
   const navItems = isHousehold ? householdNav : regulatorNav;
 
   const linkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors no-underline ${
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 no-underline ${
       isActive
-        ? 'bg-navactive text-primary font-semibold'
+        ? 'bg-navactive text-primary font-semibold shadow-[inset_0_0_0_1px_rgba(27,58,107,0.08)]'
         : 'text-body hover:bg-surface-muted text-muted hover:text-body'
     }`;
 
@@ -65,7 +65,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
           className={linkClass}
           onClick={() => onClose?.()}
         >
-          <span className="text-lg w-7 text-center shrink-0" aria-hidden>
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-[9px] font-bold tracking-tight text-slate-500 shrink-0" aria-hidden>
             {item.icon}
           </span>
           <span>{item.label}</span>
@@ -83,7 +83,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline"
             onClick={() => onClose?.()}
           >
-            <span className="text-lg w-7 text-center shrink-0">📡</span>
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-[9px] font-bold text-slate-500 shrink-0">API</span>
             <span>API Docs</span>
           </a>
         </>
@@ -107,8 +107,8 @@ export default function Sidebar({ mobileOpen, onClose }) {
         } lg:translate-x-0 lg:flex`}
       >
         {/* Sidebar Brand Header */}
-        <div className="p-5 border-b border-border flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center text-lg font-bold shrink-0">
+        <div className="p-5 border-b border-border flex items-center gap-3 bg-surface">
+          <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center text-sm font-bold tracking-[-0.04em] shrink-0 shadow-sm">
             EG
           </div>
           <div className="flex flex-col min-w-0">
@@ -122,7 +122,8 @@ export default function Sidebar({ mobileOpen, onClose }) {
         </div>
 
         {/* Dynamic Mode Switcher (Always visible on all screen sizes) */}
-        <div className="px-4 py-4 border-b border-border bg-slate-50/50">
+        <div className="px-4 py-4 border-b border-border bg-slate-50/70">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workspace</p>
           <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-0.5 border border-slate-200 shadow-inner">
             <button
               type="button"
@@ -131,7 +132,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
                 !isHousehold ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              🛡️ Regulator
+              Regulator
             </button>
             <button
               type="button"
@@ -140,7 +141,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
                 isHousehold ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              🏠 Household
+              Household
             </button>
           </div>
         </div>

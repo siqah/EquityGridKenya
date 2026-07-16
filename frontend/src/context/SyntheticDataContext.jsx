@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
 import { computeKpis } from '../data/kpiEngine';
 
 const SyntheticDataContext = createContext(null);
@@ -16,46 +16,45 @@ export function SyntheticDataProvider({ children }) {
     active_accounts: 0.08,
   });
 
-  useEffect(() => {
-    let active = true;
-    fetch('/api/v1/households')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to load cohort: ${res.statusText}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (active) {
-          const mapped = data.map((a) => ({
-            ...a,
-            account_hash: a.account_id_hash,
-            final_score: a.equity_score,
-            tariff: a.suggested_tariff_multiplier,
-            ward: `Ward ${((a.id || 0) % 5) + 1}`,
-            variable_scores: {
-              consumption_per_capita: a.score_consumption_per_capita,
-              payment_consistency: a.score_payment_consistency,
-              nsps_status: a.score_nsps_status,
-              peak_demand_ratio: a.score_peak_demand_ratio,
-              upgrade_history: a.score_upgrade_history,
-              active_accounts: a.score_active_accounts,
-            },
-          }));
-          setAccounts(mapped);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (active) {
-          setError(err.message);
-          setLoading(false);
-        }
-      });
-    return () => {
-      active = false;
-    };
+  const refresh = useCallback(async (signal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/v1/households', { signal });
+      if (!res.ok) {
+        throw new Error(`The household cohort could not be loaded (${res.status}).`);
+      }
+      const data = await res.json();
+      if (signal?.aborted) return;
+      const mapped = data.map((a) => ({
+        ...a,
+        account_hash: a.account_id_hash,
+        final_score: a.equity_score,
+        tariff: a.suggested_tariff_multiplier,
+        ward: `Ward ${((a.id || 0) % 5) + 1}`,
+        variable_scores: {
+          consumption_per_capita: a.score_consumption_per_capita,
+          payment_consistency: a.score_payment_consistency,
+          nsps_status: a.score_nsps_status,
+          peak_demand_ratio: a.score_peak_demand_ratio,
+          upgrade_history: a.score_upgrade_history,
+          active_accounts: a.score_active_accounts,
+        },
+      }));
+      setAccounts(mapped);
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      setError(err.message || 'The household cohort could not be loaded.');
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refresh(controller.signal);
+    return () => controller.abort();
+  }, [refresh]);
 
   const recomputedAccounts = useMemo(() => {
     return accounts.map((a) => {
@@ -105,32 +104,10 @@ export function SyntheticDataProvider({ children }) {
       setWeights,
       loading,
       error,
+      refresh,
     }),
-    [recomputedAccounts, accounts, stats, weights, loading, error],
+    [recomputedAccounts, accounts, stats, weights, loading, error, refresh],
   );
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-slate-600 font-sans">
-        <div className="w-10 h-10 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
-        <p className="mt-4 text-sm font-semibold tracking-wide text-primary animate-pulse">
-          Connecting to EPRA database...
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 text-tier-red font-sans p-6 text-center">
-        <div className="text-4xl mb-4">⚠️</div>
-        <h2 className="text-lg font-bold text-slate-900">Database Connection Offline</h2>
-        <p className="mt-2 text-sm text-muted max-w-md">
-          {error}. Please ensure the Uvicorn monolithic backend is running at port 8000.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <SyntheticDataContext.Provider value={value}>

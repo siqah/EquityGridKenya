@@ -138,34 +138,32 @@ export default function VitalsPage() {
   return (
     <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto space-y-6">
       {/* EPRA Board Header */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 gap-4">
+      <header className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-5 gap-4">
         <div>
-          <span className="text-[10px] uppercase font-mono tracking-widest bg-primary/10 text-primary px-2.5 py-1 rounded-full font-bold">
-            EPRA Regulatory Portal
-          </span>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">
+          <p className="page-kicker">National grid posture</p>
+          <h1 className="page-title mt-1">
             Energy Equity Intelligence
           </h1>
-          <p className="text-xs text-muted mt-1 leading-relaxed">
+          <p className="mt-1.5 text-sm leading-6 text-muted">
             Live database cohort: <span className="font-semibold text-slate-800">{stats.total_accounts.toLocaleString()} households</span> ·{' '}
             <span className="font-semibold text-slate-800">{stats.counties_covered} counties</span> ·{' '}
             <span className="font-semibold text-slate-800">{stats.turkana_exceptions} leakage overrides</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-          <span className="text-xs font-mono font-semibold text-slate-500">Live Telemetry Synchronized</span>
+        <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
+          <span className="h-2 w-2 rounded-full bg-tier-green" aria-hidden />
+          Cohort synchronized
         </div>
       </header>
 
       {/* Hero Thesis Element — 2D Map Centered at Top */}
       <section className="card overflow-hidden border-slate-200">
-        <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-bold text-primary">National Choropleth Map</h2>
             <p className="text-xs text-slate-400 mt-0.5">Interactively zoom, pan, and hover over counties to view equity stats.</p>
           </div>
-          <div className="flex gap-4 text-[10px] font-mono text-slate-500 bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">
+          <div className="flex gap-3 text-[10px] font-mono text-slate-600 bg-white px-3 py-1.5 rounded border border-slate-200 shadow-sm">
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-tier-green"></span> Green</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-tier-yellow"></span> Yellow</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-tier-red"></span> Red</span>
@@ -208,22 +206,21 @@ export default function VitalsPage() {
       </section>
 
       {/* Model Specifications Callout */}
-      <section className="card p-5 border-slate-200 bg-slate-50/50">
+      <section className="card p-5 border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <h3 className="text-xs uppercase font-mono tracking-widest text-primary font-bold">
-              Model Policy Sandbox & Parameter Weights
+            <h3 className="text-sm font-bold text-primary">
+              Policy weighting sandbox
             </h3>
-            <p className="text-xs text-muted mt-0.5 leading-relaxed">
-              Drag the sliders below to simulate different weight distributions. 
-              The map dots, KPIs, and charts will recalculate client-side instantly.
+            <p className="text-xs text-muted mt-1 leading-relaxed">
+              Test how a different mix of evidence changes the national view. Map, KPIs, and charts update immediately.
             </p>
           </div>
           <div className="flex items-center gap-3">
             <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold border ${
-              isBalanced 
-                ? 'bg-emerald-950/20 text-emerald-400 border-emerald-800' 
-                : 'bg-amber-950/20 text-amber-400 border-amber-800'
+              isBalanced
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : 'bg-amber-50 text-amber-800 border-amber-200'
             }`}>
               Sum: {sumPercent}%
             </span>
@@ -231,9 +228,9 @@ export default function VitalsPage() {
               <button
                 type="button"
                 onClick={handleNormalize}
-                className="px-3 py-1 bg-primary text-white text-xs font-bold rounded shadow hover:bg-primary-hover transition-colors"
+                className="min-h-9 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg shadow-sm hover:bg-primary/90 transition-colors"
               >
-                ⚖️ Auto-Balance (100%)
+                Balance to 100%
               </button>
             )}
           </div>
@@ -245,10 +242,10 @@ export default function VitalsPage() {
             return (
               <div 
                 key={varItem.key} 
-                className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between"
+                className="bg-slate-50 p-4 rounded-lg border border-slate-200 flex flex-col justify-between"
               >
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wide leading-tight flex items-center gap-1.5">
                     <span className={`w-2 h-2 rounded-full ${varItem.dotColor}`} />
                     {varItem.name}
                   </span>

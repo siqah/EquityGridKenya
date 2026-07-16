@@ -450,10 +450,10 @@ export default function HouseholdReportPage() {
 
   return (
     <PageFade className="household-report-print-root p-4 sm:p-6 md:p-10 max-w-4xl mx-auto pb-20 space-y-8 md:space-y-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Personal report</p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Your Energy Report</h1>
+          <p className="page-kicker">Personal report</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.025em] text-slate-900">Your Energy Report</h1>
           <p className="text-sm text-slate-600 max-w-md leading-relaxed no-print">
             Plain-language view for your household. Everything below scrolls on one page — no tabs, no hidden panels.
           </p>
@@ -461,14 +461,14 @@ export default function HouseholdReportPage() {
         <button
           type="button"
           onClick={onPrint}
-          className="no-print self-start sm:self-auto shrink-0 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+          className="no-print self-start sm:self-auto shrink-0 min-h-10 px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
         >
           Print summary
         </button>
       </div>
 
-      <section className="no-print rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm space-y-3">
-        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide" htmlFor="acct-search">
+      <section className="no-print rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm space-y-3">
+        <label className="text-xs font-semibold text-slate-600" htmlFor="acct-search">
           Load another household
         </label>
         <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
@@ -477,13 +477,13 @@ export default function HouseholdReportPage() {
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
             placeholder="Account ID e.g. ACC_004521"
-            className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            className="control-input flex-1 py-3 font-mono"
             onKeyDown={(e) => e.key === 'Enter' && onLoadAccount()}
           />
           <button
             type="button"
             onClick={onLoadAccount}
-            className="px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700"
+            className="min-h-11 px-5 py-3 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90"
           >
             Load report
           </button>
@@ -491,7 +491,7 @@ export default function HouseholdReportPage() {
       </section>
 
       {/* Section 1 */}
-      <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/80 p-5 sm:p-7 shadow-sm space-y-5">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 sm:p-7 shadow-sm space-y-5">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-4 items-center">
           <div className="space-y-1 text-center lg:text-left">
             <div className="font-mono text-lg font-bold text-slate-900">{account.account_hash}</div>
@@ -603,7 +603,7 @@ export default function HouseholdReportPage() {
           {cards.map((c) => (
             <article
               key={c.title}
-              className="rounded-2xl border border-slate-200 border-t-2 border-t-emerald-500 bg-white pl-4 pr-4 py-5 shadow-sm space-y-3"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-5 shadow-sm space-y-3 transition-colors hover:border-emerald-200"
             >
               <h3 className="font-bold text-slate-900 leading-snug">{c.title}</h3>
               <div className="flex flex-wrap gap-2">
@@ -661,14 +661,14 @@ export default function HouseholdReportPage() {
       </section>
 
       {/* Section 5 */}
-      <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:p-6 shadow-sm space-y-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">
-          AI-Generated Insight — Powered by EquityGrid Intelligence Engine
+      <section className="rounded-xl border border-blue-200 bg-blue-50/70 p-5 sm:p-6 shadow-sm space-y-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-800">
+          Your energy guide
         </p>
         {aiLoading ? (
           <p className="text-sm text-slate-500 italic">Preparing a short personalised note…</p>
         ) : (
-          <p className="text-base text-slate-800 leading-relaxed">{aiText || fallbackAdvisorText(account, highestCategory)}</p>
+          <p className="text-base text-blue-950 leading-relaxed">{aiText || fallbackAdvisorText(account, highestCategory)}</p>
         )}
         <p className="text-xs text-slate-500 leading-relaxed">
           This insight is generated based on your usage pattern. For billing queries contact KPLC on 0703070707.

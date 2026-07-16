@@ -76,30 +76,28 @@ export default function AlertsPage() {
   return (
     <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto space-y-6">
       {/* Alert Header Banner */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 gap-4">
+      <header className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-5 gap-4">
         <div>
-          <span className="text-[10px] uppercase font-mono tracking-widest bg-rose-50 text-tier-red px-2.5 py-1 rounded-full border border-rose-200 font-bold">
-            🔴 Watchdog Audit Active
-          </span>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">
+          <p className="page-kicker text-tier-red">Watchlist review</p>
+          <h1 className="page-title mt-1">
             Cross-Subsidy Leakage Watchlist
           </h1>
-          <p className="text-xs text-muted mt-1 leading-relaxed">
+          <p className="mt-1.5 max-w-3xl text-sm leading-6 text-muted">
             Telemetry rules monitor for high-income or high-capacity accounts consuming grid resources meant for lifeline protection.
           </p>
         </div>
         <button
           type="button"
           onClick={handleExport}
-          className="px-4 py-2 bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold rounded-lg shadow transition-colors flex items-center gap-2 self-start md:self-center"
+          className="min-h-10 px-4 py-2 bg-primary text-white hover:bg-primary/90 text-sm font-semibold rounded-lg shadow-sm transition-colors self-start md:self-center"
         >
-          📥 Export Audit List (CSV)
+          Export watchlist CSV
         </button>
       </header>
 
       {/* Telemetry KPI Cards */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[120px]">
+        <div className="card p-5 flex flex-col justify-between min-h-[120px]">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Flagged Accounts</span>
             <div className="text-2xl font-black text-slate-900 mt-1">{reds.length}</div>
@@ -107,7 +105,7 @@ export default function AlertsPage() {
           <span className="text-xs text-muted leading-tight">Accounts showing high leakage risks</span>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[120px]">
+        <div className="card p-5 flex flex-col justify-between min-h-[120px]">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estimated Revenue Leakage</span>
             <div className="text-2xl font-black text-tier-red mt-1">KSh {stats.leakageDetected.toLocaleString()}</div>
@@ -115,7 +113,7 @@ export default function AlertsPage() {
           <span className="text-xs text-muted leading-tight">Annualized subsidy value at risk</span>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[120px]">
+        <div className="card p-5 flex flex-col justify-between min-h-[120px]">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Critical Severity (Index ≥85)</span>
             <div className="text-2xl font-black text-rose-700 mt-1">{criticalCount}</div>
@@ -123,7 +121,7 @@ export default function AlertsPage() {
           <span className="text-xs text-muted leading-tight">High-confidence commercial profiles</span>
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between min-h-[120px]">
+        <div className="card p-5 flex flex-col justify-between min-h-[120px]">
           <div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Average Watchdog Risk Score</span>
             <div className="text-2xl font-black text-slate-900 mt-1">{avgScore}</div>
@@ -134,9 +132,13 @@ export default function AlertsPage() {
 
       {/* Priority Alerts Callout Cards */}
       <section>
-        <h2 className="text-xs uppercase font-mono tracking-widest text-primary font-bold mb-3">
-          Top Critical Watchdog Matches
-        </h2>
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-primary">Priority review queue</h2>
+            <p className="mt-1 text-xs text-muted">Five accounts that merit the earliest analyst review.</p>
+          </div>
+          <span className="shrink-0 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-800">{criticalCount} critical</span>
+        </div>
         {priority.length === 0 ? (
           <div className="card p-6 text-sm text-center text-muted">No RED accounts found. Adjust simulator weights to view.</div>
         ) : (
@@ -146,7 +148,7 @@ export default function AlertsPage() {
               return (
                 <div 
                   key={a.account_hash} 
-                  className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between gap-3 hover:border-slate-300 transition-all border-t-4 border-t-rose-500 min-h-[220px]"
+                  className="card p-4 flex flex-col justify-between gap-3 min-h-[220px] transition-colors hover:border-rose-200"
                 >
                   <div className="space-y-2">
                     <div className="flex justify-between items-start gap-1">
@@ -163,7 +165,7 @@ export default function AlertsPage() {
 
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-2xl font-black text-slate-900">{a.final_score}</span>
-                      <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">Risk Index</span>
+                      <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider">Risk index</span>
                     </div>
 
                     <span className={`inline-flex px-2 py-0.5 rounded border text-[9px] font-bold tracking-wide w-fit ${flagStyle(primaryFlag)}`}>
@@ -171,8 +173,8 @@ export default function AlertsPage() {
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 leading-relaxed italic border-t border-slate-100 pt-2.5">
-                    "{explainRed(a)}"
+                  <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-2.5">
+                    {explainRed(a)}
                   </p>
                 </div>
               );
@@ -188,8 +190,8 @@ export default function AlertsPage() {
             <span className="text-sm font-semibold text-primary">All Identified Grid Leakages</span>
             <p className="text-xs text-slate-400 mt-0.5">Interactive register of all accounts flagged with RED posture indexes.</p>
           </div>
-          <span className="text-xs font-mono bg-slate-100 text-slate-600 px-2.5 py-1 rounded border border-slate-200 font-bold">
-            {reds.length} Rows
+          <span className="text-xs font-mono bg-slate-100 text-slate-700 px-2.5 py-1 rounded border border-slate-200 font-bold">
+            {reds.length} accounts
           </span>
         </div>
         

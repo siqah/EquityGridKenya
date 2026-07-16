@@ -9,6 +9,18 @@
   body {
     @apply bg-surface-muted text-body font-sans min-h-screen overflow-x-hidden;
   }
+
+  button,
+  input,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  a:focus-visible {
+    @apply outline-none ring-2 ring-primary/45 ring-offset-2 ring-offset-surface;
+  }
 }
 
 @layer components {
@@ -16,8 +28,25 @@
     @apply bg-surface border border-border rounded-xl shadow-card;
   }
 
+  .page-kicker {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-primary;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold tracking-[-0.025em] text-body;
+  }
+
+  .control-input {
+    @apply w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-body shadow-sm placeholder:text-slate-500 transition-colors;
+    @apply hover:border-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/15;
+  }
+
+  .segmented-control {
+    @apply inline-flex rounded-lg border border-border bg-slate-50 p-1 shadow-sm;
+  }
+
   .btn-filter {
-    @apply px-4 py-2 rounded-lg border border-border bg-white text-muted text-sm font-medium cursor-pointer transition-colors;
+    @apply min-h-10 px-3.5 py-2 rounded-lg border border-border bg-white text-muted text-sm font-semibold cursor-pointer transition-all duration-150;
   }
 
   .btn-filter:hover {
@@ -54,6 +83,17 @@
 
 .animate-fade-in {
   animation: fade-in-up 0.45s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* NAJI floating mic — slow idle pulse (inviting, not distracting) */

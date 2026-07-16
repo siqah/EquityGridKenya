@@ -149,30 +149,45 @@ export default function AccountsPage() {
 
   return (
     <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto">
-      <p className="text-sm text-muted mb-4">
-        Browse the full synthetic register · {accounts.length.toLocaleString()} households
-      </p>
+      <section className="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="page-kicker">Household register</p>
+          <h2 className="page-title mt-1">Account intelligence</h2>
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted">
+            Review the live synthetic cohort, investigate outliers, and open an account scorecard for its full equity signal profile.
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm shadow-sm">
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-muted">Cohort size</span>
+          <span className="font-mono text-base font-bold text-primary">{accounts.length.toLocaleString()}</span>
+          <span className="ml-1 text-xs text-muted">households</span>
+        </div>
+      </section>
 
-      <div className="card p-4 mb-4 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-        <input
-          type="search"
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setPage(1);
-          }}
-          placeholder="Search by account hash or county…"
-          className="w-full md:max-w-md rounded-lg border border-border px-3 py-2 text-sm text-body placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-        <div className="text-xs text-muted">
-          Showing <span className="font-semibold text-body">{filtered.length}</span> matches
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <label className="relative block w-full md:max-w-md">
+          <span className="sr-only">Search accounts</span>
+          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted" aria-hidden>⌕</span>
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search account hash or county"
+            className="control-input pl-9"
+          />
+        </label>
+        <div className="text-sm text-muted">
+          <span className="font-semibold text-body">{filtered.length.toLocaleString()}</span> matching accounts
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="segmented-control mb-4 max-w-full overflow-x-auto">
         <button
           type="button"
-          className={`btn-filter ${filter === null ? '!border-primary !text-primary !bg-navactive' : ''}`}
+          className={`btn-filter whitespace-nowrap border-transparent bg-transparent ${filter === null ? '!border-primary !text-primary !bg-white shadow-sm' : ''}`}
           onClick={() => {
             setFilter(null);
             setPage(1);
@@ -184,7 +199,7 @@ export default function AccountsPage() {
           <button
             key={cls}
             type="button"
-            className={`btn-filter ${filter === cls ? '!border-primary !text-primary !bg-navactive' : ''}`}
+            className={`btn-filter whitespace-nowrap border-transparent bg-transparent ${filter === cls ? '!border-primary !text-primary !bg-white shadow-sm' : ''}`}
             onClick={() => {
               setFilter(cls);
               setPage(1);

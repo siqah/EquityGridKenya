@@ -156,10 +156,10 @@ export default function HouseholdDashboardPage() {
   return (
     <PageFade className="p-4 sm:p-6 md:p-10 max-w-2xl mx-auto space-y-8 pb-28">
       {/* Dynamic Demo Profile Switcher */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+      <div className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <span className="text-xs font-bold text-primary uppercase tracking-wide block">Demo Profiles</span>
-          <p className="text-[11px] text-muted mt-0.5">Test how different household tariffs react to grid rules.</p>
+          <span className="text-xs font-bold text-primary block">Demo household profiles</span>
+          <p className="text-[11px] text-muted mt-0.5">Compare the guidance offered to each tariff band.</p>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {demoAccounts.green && (
@@ -172,7 +172,7 @@ export default function HouseholdDashboardPage() {
                   : 'bg-slate-50 text-emerald-800 border-slate-200 hover:bg-emerald-50'
               }`}
             >
-              🟢 Green (Lifeline)
+              Green · Lifeline
             </button>
           )}
           {demoAccounts.yellow && (
@@ -185,7 +185,7 @@ export default function HouseholdDashboardPage() {
                   : 'bg-slate-50 text-amber-800 border-slate-200 hover:bg-amber-50'
               }`}
             >
-              🟡 Yellow (Standard)
+              Yellow · Standard
             </button>
           )}
           {demoAccounts.red && (
@@ -198,13 +198,14 @@ export default function HouseholdDashboardPage() {
                   : 'bg-slate-50 text-red-800 border-slate-200 hover:bg-red-50'
               }`}
             >
-              🔴 Red (Capacity Stress)
+              Red · Capacity stress
             </button>
           )}
         </div>
       </div>
 
       <header className="space-y-3">
+        <p className="page-kicker">My household</p>
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-mono text-lg font-bold text-slate-900">{account.account_hash}</span>
           <span
@@ -223,7 +224,7 @@ export default function HouseholdDashboardPage() {
 
         <div>
           <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1">
-            <span>GRID HEADROOM</span>
+            <span>Usage headroom</span>
             <span>{safePct}% safe</span>
           </div>
           <div className="h-3 rounded-full bg-slate-200 overflow-hidden">
@@ -231,28 +232,26 @@ export default function HouseholdDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 flex gap-3 items-start shadow-sm">
-          <span className="text-xl shrink-0" aria-hidden>
-            ☀️
-          </span>
-          <p className="text-sm text-amber-950 leading-relaxed">{smartTip(account)}</p>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-xs font-semibold text-amber-900">A practical tip for this week</p>
+          <p className="mt-1 text-sm text-amber-950 leading-relaxed">{smartTip(account)}</p>
         </div>
       </header>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-base font-bold text-slate-900">6 Month Consumption Trend</h2>
-          <div className="inline-flex rounded-full border border-slate-200 p-0.5 text-[11px] font-bold">
+          <div className="segmented-control text-[11px] font-bold">
             <button
               type="button"
-              className={`px-3 py-1 rounded-full ${unit === 'kwh' ? 'bg-white shadow text-slate-900' : 'text-slate-500'}`}
+              className={`px-3 py-1 rounded-md ${unit === 'kwh' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
               onClick={() => setUnit('kwh')}
             >
               kWh
             </button>
             <button
               type="button"
-              className={`px-3 py-1 rounded-full ${unit === 'monthly' ? 'bg-white shadow text-slate-900' : 'text-slate-500'}`}
+              className={`px-3 py-1 rounded-md ${unit === 'monthly' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500'}`}
               onClick={() => setUnit('monthly')}
             >
               Monthly
@@ -377,7 +376,7 @@ export default function HouseholdDashboardPage() {
           ].map((c) => (
             <article
               key={c.title}
-              className="rounded-2xl border border-slate-200 border-t-2 border-t-emerald-500 bg-white pl-4 pr-4 py-4 shadow-sm flex flex-col gap-2"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm flex flex-col gap-2 transition-colors hover:border-emerald-200"
             >
               <h3 className="font-bold text-slate-900">{c.title}</h3>
               <p className="text-sm text-slate-600 leading-relaxed">{c.body}</p>
@@ -389,7 +388,7 @@ export default function HouseholdDashboardPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50/40 p-5 shadow-md space-y-4">
+      <section className="rounded-xl border border-blue-200 bg-blue-50/70 p-5 shadow-sm space-y-4">
         <div className="flex gap-4 items-start">
           <div className="relative shrink-0">
             <img
@@ -401,30 +400,30 @@ export default function HouseholdDashboardPage() {
           <div className="min-w-0 flex-1 space-y-2">
             <div className="text-xs font-bold text-blue-800 uppercase tracking-wide">NAJI, your Energy Ally</div>
             <div className="flex gap-2 items-start">
-              <p className="text-sm text-slate-800 leading-relaxed flex-1 italic bg-blue-50/50 p-3 rounded-lg border border-blue-100/50">
+              <p className="text-sm text-blue-950 leading-relaxed flex-1 italic bg-white/75 p-3 rounded-lg border border-blue-100">
                 {najiLine || '…'}
               </p>
               <button
                 type="button"
                 onClick={onSpeakNaji}
-                className="shrink-0 w-9 h-9 rounded-full border border-blue-200 bg-white text-lg hover:bg-blue-50"
+                className="shrink-0 w-10 h-10 rounded-full border border-blue-200 bg-white text-base font-bold text-primary hover:bg-blue-100"
                 aria-label="Speak message"
               >
-                🔊
+                Listen
               </button>
             </div>
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => speak('Reminder set for tomorrow evening to review your heavy loads.')}
-                className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-sm"
+                className="min-h-10 px-4 py-2 rounded-lg bg-primary text-white text-sm font-bold shadow-sm hover:bg-primary/90"
               >
                 Yes, remind me
               </button>
               <button
                 type="button"
                 onClick={() => speak('Your tier reflects six equity signals including evening demand and household capacity.')}
-                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700"
+                className="min-h-10 px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Show me why
               </button>
