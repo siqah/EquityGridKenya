@@ -135,7 +135,7 @@ export default function VitalsPage() {
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-red"></span> Red</span>
           </div>
         </div>
-        <div className="h-[380px] md:h-[500px] relative bg-slate-950">
+        <div className="h-[280px] md:h-[360px] relative bg-slate-950">
           <KenyaDeckMap className="h-full min-h-0" />
         </div>
       </section>

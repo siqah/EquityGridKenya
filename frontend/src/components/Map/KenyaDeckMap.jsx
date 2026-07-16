@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MapLibreMap, { useControl } from 'react-map-gl/maplibre';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { GeoJsonLayer } from '@deck.gl/layers';
+import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { HexagonLayer } from '@deck.gl/aggregation-layers';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -227,8 +227,19 @@ export default function KenyaDeckMap({ className = '' }) {
 
   const onHoverDeck = useCallback(
     (info) => {
+      const o = info?.object;
+      if (o?.account_hash) {
+        setHexHover(null);
+        setHover({
+          x: info.x,
+          y: info.y,
+          isDot: true,
+          account: o,
+        });
+        return true;
+      }
+
       if (mode === 'heatmap') {
-        const o = info?.object;
         if (o?.position) {
           const pts = o.points;
           const cnt = Array.isArray(pts) ? pts.length : o.count ?? 0;
@@ -278,13 +289,18 @@ export default function KenyaDeckMap({ className = '' }) {
 
   const onClickDeck = useCallback(
     (info) => {
+      const o = info?.object;
+      if (o?.account_hash) {
+        navigate(`/household/${encodeURIComponent(o.account_hash)}`);
+        return true;
+      }
       if (mode !== 'county') return true;
       const f = info?.object;
       const c = f?.properties?._modelCounty;
       if (c) setSelectedCounty(c);
       return true;
     },
-    [mode],
+    [mode, navigate],
   );
 
   const layers = useMemo(() => {
@@ -319,11 +335,36 @@ export default function KenyaDeckMap({ className = '' }) {
       ];
     }
 
+    const dotsLayer = new ScatterplotLayer({
+      id: 'account-dots',
+      data: accounts.filter(
+        (a) => Array.isArray(a.coordinates) && a.coordinates.length === 2 && inKenyaBounds(a.coordinates[0], a.coordinates[1])
+      ),
+      getPosition: (d) => d.coordinates,
+      getRadius: 1600,
+      getFillColor: (d) => {
+        if (d.classification === 'GREEN') return COL.green;
+        if (d.classification === 'YELLOW') return COL.amber;
+        return COL.red;
+      },
+      getLineColor: [255, 255, 255, 200],
+      getLineWidth: 120,
+      stroked: true,
+      filled: true,
+      radiusMinPixels: 2.5,
+      radiusMaxPixels: 10,
+      lineWidthMinPixels: 0.5,
+      pickable: true,
+      updateTriggers: {
+        getFillColor: [accounts],
+      },
+    });
+
     return [
       new GeoJsonLayer({
         id: 'counties-2d',
         data: geojson,
-        opacity,
+        opacity: opacity * 0.7,
         pickable: true,
         stroked: true,
         filled: true,
@@ -341,8 +382,9 @@ export default function KenyaDeckMap({ className = '' }) {
           getFillColor: [opacity, geojson, maxCountyAccounts],
         },
       }),
+      dotsLayer,
     ];
-  }, [geojson, mode, hexData, opacity, maxCountyAccounts]);
+  }, [geojson, mode, hexData, opacity, maxCountyAccounts, accounts]);
 
   const resetView = () => {
     setViewState({ ...INITIAL_VIEW });
@@ -552,6 +594,32 @@ export default function KenyaDeckMap({ className = '' }) {
               Avg equity score:{' '}
               <span className="font-mono font-bold text-sky-300">{hover.row.avg_equity_score}</span>
             </div>
+          </div>
+        )}
+
+        {hover && hover.isDot && (
+          <div
+            className="absolute z-20 pointer-events-none rounded-xl border border-slate-600 bg-slate-900 shadow-xl p-3 text-xs w-[240px] text-slate-200"
+            style={{
+              left: Math.min(Math.max(hover.x + 12, 8), 8),
+              top: Math.min(Math.max(hover.y + 12, 8), 120),
+            }}
+          >
+            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Household Node</div>
+            <div className="font-mono text-xs font-bold text-sky-400 truncate mb-1">{hover.account.account_hash}</div>
+            <div className="text-slate-400 mb-1">
+              Location: <span className="font-semibold text-slate-100">{hover.account.county}</span>
+            </div>
+            <div className="text-slate-400 mb-1">
+              Vulnerability: <span className={`font-bold ${
+                hover.account.classification === 'GREEN' ? 'text-tier-green' :
+                hover.account.classification === 'YELLOW' ? 'text-tier-yellow' : 'text-tier-red'
+              }`}>{hover.account.classification}</span>
+            </div>
+            <div className="text-slate-400 mb-2">
+              Monthly Usage: <span className="font-semibold text-slate-100">{hover.account.kwh_month} kWh</span>
+            </div>
+            <div className="text-[10px] text-slate-500 italic">Click dot to open energy report</div>
           </div>
         )}
       </div>
