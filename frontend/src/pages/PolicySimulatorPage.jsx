@@ -47,12 +47,29 @@ export default function PolicySimulatorPage() {
 
   return (
     <PageFade className="p-5 md:p-8 max-w-[1200px] mx-auto space-y-6">
-      <p className="text-sm text-muted">
-        Adjust policy levers on the synthetic cohort — figures are illustrative for the hackathon storyline.
-      </p>
+      <header className="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="page-kicker">Scenario analysis</p>
+          <h1 className="page-title mt-1">Policy simulator</h1>
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted">
+            Adjust the two tariff levers and compare affordability with a financially sustainable cross-subsidy position.
+          </p>
+        </div>
+        <div className={`rounded-lg border px-3 py-2 text-right ${netPositive ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}>
+          <span className={`block text-[10px] font-semibold uppercase tracking-[0.1em] ${netPositive ? 'text-emerald-800' : 'text-rose-800'}`}>Projected posture</span>
+          <span className={`text-sm font-bold ${netPositive ? 'text-emerald-800' : 'text-rose-800'}`}>{netPositive ? 'Sustainable' : 'Subsidy deficit'}</span>
+        </div>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card p-5 space-y-5">
+          <div className="flex items-center justify-between border-b border-border pb-4">
+            <div>
+              <h2 className="text-sm font-bold text-primary">Policy levers</h2>
+              <p className="mt-1 text-xs text-muted">Changes are applied to the full cohort immediately.</p>
+            </div>
+            <span className="rounded-md bg-navactive px-2 py-1 text-[11px] font-semibold text-primary">Live model</span>
+          </div>
           <div>
             <div className="flex justify-between text-sm font-semibold text-body mb-2">
               <span>GREEN tier discount</span>
@@ -84,13 +101,17 @@ export default function PolicySimulatorPage() {
             <p className="text-xs text-muted mt-1">0–30% cross-subsidy uplift on flagged accounts.</p>
           </div>
 
-          <div className="flex items-center justify-center py-4">
-            <div
-              className="text-6xl transition-transform duration-300"
-              style={{ transform: `rotate(${tilt}deg)` }}
-              aria-hidden
-            >
-              ⚖️
+          <div className="rounded-lg border border-border bg-slate-50 px-4 py-4">
+            <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted">
+              <span>Revenue balance</span>
+              <span className={netPositive ? 'text-tier-green' : 'text-tier-red'}>{netPositive ? 'Surplus' : 'Deficit'}</span>
+            </div>
+            <div className="relative h-2 rounded-full bg-slate-200" aria-label={`Revenue balance: ${netPositive ? 'surplus' : 'deficit'}`}>
+              <span className="absolute left-1/2 top-[-3px] h-3.5 w-px bg-slate-400" aria-hidden />
+              <span
+                className={`absolute top-0 h-2 rounded-full transition-all duration-200 ${netPositive ? 'bg-tier-green' : 'bg-tier-red'}`}
+                style={netPositive ? { left: '50%', width: `${Math.abs(tilt) * 2.4}%` } : { right: '50%', width: `${Math.abs(tilt) * 2.4}%` }}
+              />
             </div>
           </div>
         </div>
@@ -175,35 +196,34 @@ export default function PolicySimulatorPage() {
       </div>
 
       <section className="space-y-4 pt-4 border-t border-border">
-        <h2 className="text-lg font-bold text-primary flex items-center gap-2">
-          <span aria-hidden>📄</span>
-          Regulatory Alignment
+        <h2 className="text-lg font-bold text-primary">
+          Regulatory alignment
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             {
-              icon: '⚖️',
+              icon: 'EA',
               label: 'Energy Act 2019 — Section 34',
               text: "EquityGrid operationalises EPRA's mandate to ensure tariffs are just and reasonable by replacing consumption-only classification with six-variable equity scoring.",
             },
             {
-              icon: '🔒',
+              icon: 'DP',
               label: 'Data Protection Act 2019',
               text: 'All household accounts are processed using hashed identifiers. No personally identifiable information is stored or displayed. Every tariff change is written to an immutable audit log.',
             },
             {
-              icon: '🌿',
+              icon: 'NDC',
               label: 'Paris Agreement — Kenya NDC',
               text: "By protecting vulnerable households from disproportionate energy costs, EquityGrid ensures Kenya's clean energy transition does not deepen energy poverty.",
             },
             {
-              icon: '🏁',
+              icon: 'V30',
               label: 'Kenya Vision 2030',
               text: 'Universal affordable energy access is a Vision 2030 pillar. EquityGrid gives EPRA the targeting precision to direct subsidies where they create the most social and economic impact.',
             },
           ].map((c) => (
             <div key={c.label} className="card p-5 border-border flex gap-3">
-              <span className="text-2xl shrink-0" aria-hidden>
+              <span className="flex h-8 min-w-8 items-center justify-center rounded-md bg-navactive px-1 text-[10px] font-bold text-primary shrink-0" aria-hidden>
                 {c.icon}
               </span>
               <div>

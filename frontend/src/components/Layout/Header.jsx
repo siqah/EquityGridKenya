@@ -26,7 +26,7 @@ export default function Header({ onMenu }) {
     : pageTitles[location.pathname] || 'EquityGrid Kenya';
 
   return (
-    <header className="fixed top-0 left-0 lg:left-[260px] right-0 h-16 bg-surface border-b border-border flex items-center justify-between px-4 md:px-8 z-30">
+    <header className="fixed top-0 left-0 lg:left-[260px] right-0 h-16 bg-surface/95 backdrop-blur-sm border-b border-border flex items-center justify-between px-4 md:px-8 z-30">
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
@@ -36,7 +36,10 @@ export default function Header({ onMenu }) {
         >
           ☰
         </button>
-        <h1 className="text-base md:text-lg font-bold text-body truncate">{title}</h1>
+        <div className="min-w-0">
+          <p className="hidden md:block text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">{isHousehold ? 'Household workspace' : 'EPRA regulatory workspace'}</p>
+          <h1 className="text-base md:text-lg font-bold tracking-[-0.015em] text-body truncate">{title}</h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 md:gap-3 shrink-0">
@@ -56,9 +59,9 @@ export default function Header({ onMenu }) {
             </div>
           </div>
         )}
-        <div className="inline-flex flex-col items-end leading-tight px-3 py-1.5 rounded-lg bg-primary text-white text-right">
-          <span className="text-xs font-semibold">EquityGrid Kenya</span>
-          <span className="text-[10px] font-medium text-white/80">v1.0 — Hackathon Build</span>
+        <div className="inline-flex flex-col items-end leading-tight px-3 py-1.5 rounded-lg border border-primary/15 bg-navactive text-right">
+          <span className="text-xs font-semibold text-primary">EquityGrid Kenya</span>
+          <span className="text-[10px] font-medium text-primary/70">Policy intelligence</span>
         </div>
       </div>
     </header>
