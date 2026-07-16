@@ -110,3 +110,39 @@ Open `http://localhost:8000` in your web browser to test!
 3. Railway automatically detects the `Dockerfile` in your root and handles the build.
 4. Add your environment variables in the variables dashboard tab.
 5. In your settings, enable a public domain to access the application.
+
+---
+
+## 5. Preventing Render Free Tier Spin-Down (Keep-Alive Guide)
+
+Render's Free tier automatically spins down (goes to sleep) your application after **15 minutes of inactivity**. The next request can take **30 to 50 seconds** to start up while the container cold-starts.
+
+Here are the best methods to keep your application alive 24/7 for free:
+
+### Method A: Use a Free External Uptime Pinger (Highly Recommended)
+An external pinger sends a request to your server at regular intervals, preventing it from ever reaching 15 minutes of inactivity.
+
+1. **UptimeRobot (Free):**
+   *   Sign up for a free account at [UptimeRobot](https://uptimerobot.com/).
+   *   Click **Add New Monitor**.
+   *   Select **Monitor Type:** `HTTP(s)`.
+   *   Set **Friendly Name:** `EquityGrid Kenya Keep-Alive`.
+   *   Set **URL (or IP):** `https://your-app-name.onrender.com/api/v1/health` (use your deployed Render URL).
+   *   Set **Monitoring Interval:** Every `5 minutes` or `10 minutes` (anything under 14 minutes prevents spin-down).
+   *   Click **Create Monitor**.
+
+2. **Cron-Job.org (Free):**
+   *   Sign up at [Cron-Job.org](https://cron-job.org/).
+   *   Create a new cron job that executes a `GET` request to `https://your-app-name.onrender.com/api/v1/health` every 10 minutes.
+
+### Method B: Use a Self-Ping Workflow Script
+If you have a GitHub Actions workflow or a secondary server running, you can create a simple curl command cron job:
+```bash
+# Crontab entry to ping the app every 10 minutes:
+*/10 * * * * curl -s https://your-app-name.onrender.com/api/v1/health > /dev/null
+```
+
+### Method C: Upgrade to Render's Paid Individual Tier
+*   Render offers paid individual plans starting at **$7/month**. 
+*   Upgrading immediately disables the spin-down behavior entirely and provides persistent SSD disk storage (beneficial for keeping the SQLite database persistent without Postgres).
+
