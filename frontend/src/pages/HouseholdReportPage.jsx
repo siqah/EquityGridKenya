@@ -603,7 +603,7 @@ export default function HouseholdReportPage() {
           {cards.map((c) => (
             <article
               key={c.title}
-              className="rounded-2xl border border-slate-100 bg-white pl-4 pr-4 py-5 shadow-sm border-l-4 border-l-emerald-500 space-y-3"
+              className="rounded-2xl border border-slate-200 border-t-2 border-t-emerald-500 bg-white pl-4 pr-4 py-5 shadow-sm space-y-3"
             >
               <h3 className="font-bold text-slate-900 leading-snug">{c.title}</h3>
               <div className="flex flex-wrap gap-2">
@@ -661,7 +661,7 @@ export default function HouseholdReportPage() {
       </section>
 
       {/* Section 5 */}
-      <section className="rounded-2xl border border-slate-200 bg-white pl-4 sm:pl-5 pr-5 py-6 shadow-sm border-l-4 border-l-blue-500 space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:p-6 shadow-sm space-y-4">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">
           AI-Generated Insight — Powered by EquityGrid Intelligence Engine
         </p>

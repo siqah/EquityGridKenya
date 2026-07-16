@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import MapLibreMap, { useControl } from 'react-map-gl/maplibre';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { GeoJsonLayer } from '@deck.gl/layers';
+import { GeoJsonLayer, ScatterplotLayer } from '@deck.gl/layers';
 import { HexagonLayer } from '@deck.gl/aggregation-layers';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -31,7 +31,7 @@ const INITIAL_VIEW = {
   longitude: 37.9062,
   latitude: 0.0236,
   zoom: 5.8,
-  pitch: 32,
+  pitch: 0,
   bearing: 0,
 };
 
@@ -227,8 +227,19 @@ export default function KenyaDeckMap({ className = '' }) {
 
   const onHoverDeck = useCallback(
     (info) => {
+      const o = info?.object;
+      if (o?.account_hash) {
+        setHexHover(null);
+        setHover({
+          x: info.x,
+          y: info.y,
+          isDot: true,
+          account: o,
+        });
+        return true;
+      }
+
       if (mode === 'heatmap') {
-        const o = info?.object;
         if (o?.position) {
           const pts = o.points;
           const cnt = Array.isArray(pts) ? pts.length : o.count ?? 0;
@@ -278,13 +289,18 @@ export default function KenyaDeckMap({ className = '' }) {
 
   const onClickDeck = useCallback(
     (info) => {
+      const o = info?.object;
+      if (o?.account_hash) {
+        navigate(`/household/${encodeURIComponent(o.account_hash)}`);
+        return true;
+      }
       if (mode !== 'county') return true;
       const f = info?.object;
       const c = f?.properties?._modelCounty;
       if (c) setSelectedCounty(c);
       return true;
     },
-    [mode],
+    [mode, navigate],
   );
 
   const layers = useMemo(() => {
@@ -307,8 +323,7 @@ export default function KenyaDeckMap({ className = '' }) {
           gpuAggregation: false,
           radius: 9000,
           coverage: 0.92,
-          extruded: true,
-          elevationScale: 64,
+          extruded: false,
           getPosition: (d) => d.position,
           getColorValue: (pts) =>
             pts.length ? pts.reduce((s, p) => s + p.final_score, 0) / pts.length : 0,
@@ -316,23 +331,45 @@ export default function KenyaDeckMap({ className = '' }) {
           colorRange: HEX_COLOR_RANGE,
           opacity,
           pickable: true,
-          material: MATTE_3D,
         }),
       ];
     }
 
+    const dotsLayer = new ScatterplotLayer({
+      id: 'account-dots',
+      data: accounts.filter(
+        (a) => Array.isArray(a.coordinates) && a.coordinates.length === 2 && inKenyaBounds(a.coordinates[0], a.coordinates[1])
+      ),
+      getPosition: (d) => d.coordinates,
+      getRadius: 1600,
+      getFillColor: (d) => {
+        if (d.classification === 'GREEN') return COL.green;
+        if (d.classification === 'YELLOW') return COL.amber;
+        return COL.red;
+      },
+      getLineColor: [255, 255, 255, 200],
+      getLineWidth: 120,
+      stroked: true,
+      filled: true,
+      radiusMinPixels: 2.5,
+      radiusMaxPixels: 10,
+      lineWidthMinPixels: 0.5,
+      pickable: true,
+      updateTriggers: {
+        getFillColor: [accounts],
+      },
+    });
+
     return [
       new GeoJsonLayer({
-        id: 'counties-3d',
+        id: 'counties-2d',
         data: geojson,
-        opacity,
+        opacity: opacity * 0.7,
         pickable: true,
         stroked: true,
         filled: true,
-        extruded: true,
+        extruded: false,
         wireframe: false,
-        elevationScale: 1,
-        getElevation: (d) => d.properties._elevation || 0,
         getFillColor: (d) => {
           const rgb = fillForDominant(d.properties._dominant);
           const a = d.properties._dominant === 'none' ? 200 : 245;
@@ -341,21 +378,20 @@ export default function KenyaDeckMap({ className = '' }) {
         getLineColor: [15, 23, 42, 240],
         lineWidthMinPixels: 0.6,
         getLineWidth: 1,
-        material: MATTE_3D,
         updateTriggers: {
           getFillColor: [opacity, geojson, maxCountyAccounts],
-          getElevation: [maxCountyAccounts, geojson],
         },
       }),
+      dotsLayer,
     ];
-  }, [geojson, mode, hexData, opacity, maxCountyAccounts]);
+  }, [geojson, mode, hexData, opacity, maxCountyAccounts, accounts]);
 
   const resetView = () => {
     setViewState({ ...INITIAL_VIEW });
     mapRef.current?.getMap?.()?.flyTo?.({
       center: [INITIAL_VIEW.longitude, INITIAL_VIEW.latitude],
       zoom: INITIAL_VIEW.zoom,
-      pitch: INITIAL_VIEW.pitch,
+      pitch: 0,
       bearing: INITIAL_VIEW.bearing,
       duration: 800,
     });
@@ -384,20 +420,18 @@ export default function KenyaDeckMap({ className = '' }) {
           onLoad={(e) => {
             const map = e.target;
             if (!map || typeof map.getPitch !== 'function') return;
-            if (map.getPitch() < 12) {
-              map.easeTo({ pitch: INITIAL_VIEW.pitch, duration: 400 });
-            }
+            map.easeTo({ pitch: 0, duration: 400 });
           }}
           style={{ width: '100%', height: '100%' }}
           mapStyle={MAP_STYLE}
           mapLib={maplibregl}
           dragPan
           scrollZoom
-          dragRotate
+          dragRotate={false}
           touchZoomRotate
-          touchPitch
-          pitchWithRotate
-          maxPitch={60}
+          touchPitch={false}
+          pitchWithRotate={false}
+          maxPitch={0}
           minZoom={5}
           maxZoom={12}
           maxBounds={[
@@ -417,7 +451,7 @@ export default function KenyaDeckMap({ className = '' }) {
         {!geojson?.features?.length && (
           <div className="absolute inset-0 z-[5] flex flex-col items-center justify-center gap-2 bg-slate-950 text-slate-400 text-xs pointer-events-none">
             <div className="h-8 w-8 rounded-full border-2 border-slate-600 border-t-sky-500 animate-spin" aria-hidden />
-            <span>Loading county geometry for 3D view…</span>
+            <span>Loading county geometry for 2D map view…</span>
           </div>
         )}
 
@@ -486,12 +520,12 @@ export default function KenyaDeckMap({ className = '' }) {
             </div>
             {mode === 'heatmap' && (
               <p className="text-[10px] text-slate-500 leading-snug mt-1">
-                3D hex (matte): colour ≈ mean score; height ≈ density — Kenya only.
+                2D hex aggregation: color shows average vulnerability rating.
               </p>
             )}
             {mode === 'county' && (
               <p className="text-[10px] text-slate-500 leading-snug mt-1">
-                3D counties (matte): height ≈ cohort size — tilt with right-drag or Ctrl+drag (trackpad: two-finger rotate).
+                2D County View: color shows dominant vulnerability cohort.
               </p>
             )}
           </div>
@@ -560,6 +594,32 @@ export default function KenyaDeckMap({ className = '' }) {
               Avg equity score:{' '}
               <span className="font-mono font-bold text-sky-300">{hover.row.avg_equity_score}</span>
             </div>
+          </div>
+        )}
+
+        {hover && hover.isDot && (
+          <div
+            className="absolute z-20 pointer-events-none rounded-xl border border-slate-600 bg-slate-900 shadow-xl p-3 text-xs w-[240px] text-slate-200"
+            style={{
+              left: Math.min(Math.max(hover.x + 12, 8), 8),
+              top: Math.min(Math.max(hover.y + 12, 8), 120),
+            }}
+          >
+            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Household Node</div>
+            <div className="font-mono text-xs font-bold text-sky-400 truncate mb-1">{hover.account.account_hash}</div>
+            <div className="text-slate-400 mb-1">
+              Location: <span className="font-semibold text-slate-100">{hover.account.county}</span>
+            </div>
+            <div className="text-slate-400 mb-1">
+              Vulnerability: <span className={`font-bold ${
+                hover.account.classification === 'GREEN' ? 'text-tier-green' :
+                hover.account.classification === 'YELLOW' ? 'text-tier-yellow' : 'text-tier-red'
+              }`}>{hover.account.classification}</span>
+            </div>
+            <div className="text-slate-400 mb-2">
+              Monthly Usage: <span className="font-semibold text-slate-100">{hover.account.kwh_month} kWh</span>
+            </div>
+            <div className="text-[10px] text-slate-500 italic">Click dot to open energy report</div>
           </div>
         )}
       </div>

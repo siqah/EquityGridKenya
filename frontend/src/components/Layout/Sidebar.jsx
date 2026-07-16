@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useDashboardMode } from '../../context/DashboardModeContext';
+import { useSyntheticData } from '../../context/SyntheticDataContext';
 
 const regulatorNav = [
   { path: '/', label: 'Vitals Overview', icon: '📊' },
@@ -12,15 +13,17 @@ const regulatorNav = [
 ];
 
 export default function Sidebar({ mobileOpen, onClose }) {
-  const { isHousehold, householdAccountHash } = useDashboardMode();
+  const navigate = useNavigate();
+  const { mode, setMode, isHousehold, householdAccountHash, setHouseholdAccount } = useDashboardMode();
+  const { accounts } = useSyntheticData();
 
   const householdNav = [
-    { path: '/my-account', label: 'My home', icon: '🏠' },
+    { path: '/my-account', label: 'My Home Dashboard', icon: '🏠' },
     {
       path: householdAccountHash
         ? `/household/${encodeURIComponent(householdAccountHash)}`
         : '/my-energy-report',
-      label: 'Detailed energy report',
+      label: 'Detailed Energy Report',
       icon: '📋',
     },
     { path: '/lookup', label: 'Account Lookup', icon: '🔎' },
@@ -29,16 +32,30 @@ export default function Sidebar({ mobileOpen, onClose }) {
   const navItems = isHousehold ? householdNav : regulatorNav;
 
   const linkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border-l-[3px] transition-colors no-underline ${
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors no-underline ${
       isActive
-        ? 'bg-navactive text-primary border-primary'
-        : 'border-transparent text-body hover:bg-surface-muted text-muted hover:text-body'
+        ? 'bg-navactive text-primary font-semibold'
+        : 'text-body hover:bg-surface-muted text-muted hover:text-body'
     }`;
+
+  const handleModeSwitch = (targetMode) => {
+    setMode(targetMode);
+    if (targetMode === 'regulator') {
+      navigate('/');
+    } else {
+      // Find a default account to display if no active household is set
+      if (!householdAccountHash && accounts && accounts.length > 0) {
+        setHouseholdAccount(accounts[0].account_hash);
+      }
+      navigate('/my-account');
+    }
+    onClose?.();
+  };
 
   const nav = (
     <>
       <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
-        {isHousehold ? 'My account' : 'Dashboard'}
+        {isHousehold ? 'My Account' : 'Dashboard'}
       </div>
       {navItems.map((item) => (
         <NavLink
@@ -63,7 +80,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
             href="http://127.0.0.1:8000/docs"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline border-l-[3px] border-transparent"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline"
             onClick={() => onClose?.()}
           >
             <span className="text-lg w-7 text-center shrink-0">📡</span>
@@ -89,6 +106,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 lg:flex`}
       >
+        {/* Sidebar Brand Header */}
         <div className="p-5 border-b border-border flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center text-lg font-bold shrink-0">
             EG
@@ -100,6 +118,30 @@ export default function Sidebar({ mobileOpen, onClose }) {
             <span className="text-[11px] font-medium text-muted uppercase tracking-wide">
               {isHousehold ? 'Household view' : 'Energy intelligence'}
             </span>
+          </div>
+        </div>
+
+        {/* Dynamic Mode Switcher (Always visible on all screen sizes) */}
+        <div className="px-4 py-4 border-b border-border bg-slate-50/50">
+          <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-0.5 border border-slate-200 shadow-inner">
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('regulator')}
+              className={`py-1.5 rounded-md text-xs font-bold text-center transition-all ${
+                !isHousehold ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              🛡️ Regulator
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('household')}
+              className={`py-1.5 rounded-md text-xs font-bold text-center transition-all ${
+                isHousehold ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              🏠 Household
+            </button>
           </div>
         </div>
 
