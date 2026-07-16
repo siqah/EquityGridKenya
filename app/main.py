@@ -27,9 +27,26 @@ async def lifespan(app: FastAPI):
     print(f"📊 Database: {settings.DATABASE_URL}")
     print(f"⚡ Initializing database tables...")
     init_db()
+
+    # Auto-seed database if empty (ensures the demo works out-of-the-box on Render/local docker)
+    from app.database import SessionLocal
+    from app.models import EquityResult
+    db = SessionLocal()
+    try:
+        if db.query(EquityResult).count() == 0:
+            print("🛢️ Database is empty! Auto-seeding 1,000 synthetic households...")
+            from scripts.generate_synthetic_data import main as seed_db
+            seed_db()
+            print("✅ Auto-seeding completed successfully.")
+    except Exception as e:
+        print(f"⚠️ Could not auto-seed database: {e}")
+    finally:
+        db.close()
+
     print(f"✅ Ready!\n")
     yield
     print(f"\n🔴 {settings.APP_NAME} shutting down.\n")
+
 
 
 settings = get_settings()
