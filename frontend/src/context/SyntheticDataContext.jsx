@@ -25,6 +25,14 @@ export function SyntheticDataProvider({ children }) {
             final_score: a.equity_score,
             tariff: a.suggested_tariff_multiplier,
             ward: `Ward ${((a.id || 0) % 5) + 1}`,
+            variable_scores: {
+              consumption_per_capita: a.score_consumption_per_capita,
+              payment_consistency: a.score_payment_consistency,
+              nsps_status: a.score_nsps_status,
+              peak_demand_ratio: a.score_peak_demand_ratio,
+              upgrade_history: a.score_upgrade_history,
+              active_accounts: a.score_active_accounts,
+            },
           }));
           setAccounts(mapped);
           setLoading(false);

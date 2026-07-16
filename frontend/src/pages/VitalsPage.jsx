@@ -122,12 +122,12 @@ export default function VitalsPage() {
         </div>
       </header>
 
-      {/* Hero Thesis Element — 3D Map Centered at Top */}
+      {/* Hero Thesis Element — 2D Map Centered at Top */}
       <section className="card overflow-hidden border-slate-200">
         <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 className="text-sm font-bold text-primary">National Choropleth Extrusion Map</h2>
-            <p className="text-xs text-slate-400 mt-0.5">3D heights represent overall subsidy leakage score per county.</p>
+            <h2 className="text-sm font-bold text-primary">National Choropleth Map</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Interactively zoom, pan, and hover over counties to view equity stats.</p>
           </div>
           <div className="flex gap-4 text-[10px] font-mono text-slate-500 bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-green"></span> Green</span>
