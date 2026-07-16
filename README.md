@@ -1,79 +1,38 @@
-# EquityGridKenya
+# EquityGrid Kenya
 
-Energy equity intelligence for smart grid policy. EquityGrid Kenya is an MVP decision-support engine designed to create a **Dual-Savings** ecosystem:
-1. **Making the Consumer Pay Less:** By optimizing how baseline allocations are distributed, we ensure everyday consumers reliably access affordable lifeline tariffs without carrying the cost of systemic misuse.
-2. **Making EPRA (and Utilities) Pay Less:** By flagging high-draw consumption anomalies and preventing subsidy leakage, regulators drastically reduce the subsidy burden and avoid expensive peak-infrastructure upgrades.
+Energy equity intelligence for smart grid policy. Built for Kenya’s energy sector regulators (EPRA) and utility providers, EquityGrid Kenya is a decision-support platform designed to ensure fair, cost-saving, and data-driven electricity subsidy distribution.
 
-Built for Kenya’s energy sector regulators and utility providers, it leverages geographic, token purchase, and consumption data to make equitable, cost-saving decisions.
+---
 
-## Prerequisites
+## The Problem
 
-- **Python 3.12+** (3.13 or **3.14** are fine with the pinned dependencies in `requirements.txt`).
-- **Node.js 18+** (only if you run or build the React dashboard).
+Energy regulators in developing markets face a double-edged challenge when designing social tariffs:
+1. **Inefficient Subsidy Targeting:** Lifeline tariffs are often misallocated. Affluent households with heavy discretionary loads (such as luxury appliances, air conditioning, and multi-meter addresses) bypass limits and consume subsidized energy intended for vulnerable families.
+2. **Rising Fiscal & Grid Burdens:** Subsidy leakage balloons government and utility expenditures. Concurrently, unmanaged peak demand (especially the 6:00 PM – 10:00 PM evening peak) triggers expensive grid infrastructure strain and capacity upgrades.
 
-Older `pydantic==2.9` pins could not install on **CPython 3.14** on Windows because `pydantic-core` had to compile against PyO3 (max 3.13). This repo pins **Pydantic 2.13+** so `pydantic-core` installs from a **prebuilt wheel** on 3.14.
+---
 
-## Backend (FastAPI)
+## The Solution
 
-From the repository root:
+**EquityGrid Kenya** processes geographic, payment consistency, and consumption metrics to score and classify households. It creates a **Dual-Savings** ecosystem:
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
+1. **Protecting Vulnerable Consumers:** Mapped households (assigned the **GREEN** band) reliably access affordable lifeline tariffs (suggested **0.60×** multiplier) to support basic energy needs.
+2. **Optimizing Utility & Regulator Budgets:** High-draw or affluent households (assigned the **RED** band) are identified and billed as cross-subsidy contributors (suggested **1.40×** multiplier). This drastically reduces public subsidy expenditure and deters peak-hour load surges.
 
-- **Swagger UI:** http://127.0.0.1:8000/docs  
-- **ReDoc:** http://127.0.0.1:8000/redoc  
-- **Health:** http://127.0.0.1:8000/api/v1/health  
+### Six-Variable Equity Model
+To classify households accurately without violating individual privacy, the platform uses a transparent, weighted six-signal scorecard:
+*   **Consumption per Capita Proxy (25%):** Normalizes monthly consumption by ward-level average household size against the national vulnerability benchmark.
+*   **Payment Consistency (22%):** Assesses monthly disconnection days (stable ability to pay vs constrained access).
+*   **NSPS Registration Status (18%):** Automatically aligns with the National Social Protection Single Registry to verify existing vulnerability status.
+*   **Peak Demand Ratio (15%):** Measures the share of energy drawn during the expensive 6:00 PM – 10:00 PM evening peak window.
+*   **Upgrade History (12%):** Flags connection capacity (e.g. three-phase connections vs low-kVA single phase).
+*   **Active Accounts at Address (8%):** Identifies multiple active meters registered at a single physical address.
 
-On first start, the app creates the SQLite database file **`equitygrid.db`** in the current working directory (override with `DATABASE_URL` in a `.env` file; see `app/config.py`).
+---
 
-### Optional: load synthetic demo data
+## Project Documentation Directory
 
-With the venv active and from the repo root:
+To maintain a clean and focused landing page, all technical specifications and instructions have been separated into dedicated modules:
 
-```powershell
-python scripts\generate_synthetic_data.py
-```
-
-## Frontend (React + Vite)
-
-### Development (API on port 8000)
-
-Terminal 1: run the backend as above.  
-Terminal 2:
-
-```powershell
-cd frontend
-npm install
-npm run dev
-```
-
-Configure the Vite dev server proxy if your API base URL differs (see `frontend/src/api/equityApi.js`).
-
-### Production-style: UI served by FastAPI
-
-Build the dashboard, then run only the backend; FastAPI serves `frontend/dist` when that folder exists:
-
-```powershell
-cd frontend
-npm install
-npm run build
-cd ..
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-
-Open http://127.0.0.1:8000/ for the SPA (non-API routes fall back to `index.html`).
-
-## Environment
-
-Optional `.env` in the repo root (loaded by `pydantic-settings`), for example:
-
-```env
-DATABASE_URL=sqlite:///./equitygrid.db
-```
-
-For production, set a strong `GEOSPATIAL_LAYER_PEPPER` and tighten CORS in `app/main.py`.
+*   📖 **System Design & Spec:** For details on SQLAlchemy models, API contracts, formulas, and security compliance, read [ARCHITECTURE_AND_DESIGN.md](file:///Users/app/Desktop/EquityGridKenya/ARCHITECTURE_AND_DESIGN.md).
+*   🚀 **Deployment & Running:** For instructions to build the React frontend, run the FastAPI backend, execute docker containers, and run database seed scripts, read [DEPLOYMENT_AND_MONOLITH_GUIDE.md](file:///Users/app/Desktop/EquityGridKenya/DEPLOYMENT_AND_MONOLITH_GUIDE.md).
