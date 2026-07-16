@@ -377,7 +377,7 @@ export default function HouseholdDashboardPage() {
           ].map((c) => (
             <article
               key={c.title}
-              className="rounded-2xl border border-slate-100 bg-white pl-4 pr-4 py-4 shadow-sm border-l-4 border-l-emerald-500 flex flex-col gap-2"
+              className="rounded-2xl border border-slate-200 border-t-2 border-t-emerald-500 bg-white pl-4 pr-4 py-4 shadow-sm flex flex-col gap-2"
             >
               <h3 className="font-bold text-slate-900">{c.title}</h3>
               <p className="text-sm text-slate-600 leading-relaxed">{c.body}</p>
@@ -401,7 +401,7 @@ export default function HouseholdDashboardPage() {
           <div className="min-w-0 flex-1 space-y-2">
             <div className="text-xs font-bold text-blue-800 uppercase tracking-wide">NAJI, your Energy Ally</div>
             <div className="flex gap-2 items-start">
-              <p className="text-sm text-slate-800 leading-relaxed flex-1 italic border-l-4 border-blue-400 pl-3">
+              <p className="text-sm text-slate-800 leading-relaxed flex-1 italic bg-blue-50/50 p-3 rounded-lg border border-blue-100/50">
                 {najiLine || '…'}
               </p>
               <button

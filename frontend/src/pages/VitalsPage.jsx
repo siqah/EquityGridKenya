@@ -84,7 +84,7 @@ function StatCard({ label, value, detail, variant = 'default', children }) {
 }
 
 export default function VitalsPage() {
-  const { stats } = useSyntheticData();
+  const { stats, weights, setWeights } = useSyntheticData();
 
   const donutData = [
     { name: 'Green (Lifeline)', value: stats.classification_counts.GREEN, key: 'GREEN' },
@@ -98,6 +98,42 @@ export default function VitalsPage() {
   }));
 
   const revenuePositive = stats.revenueBalance >= 0;
+
+  const variables = [
+    { key: 'consumption_per_capita', name: 'Consumption / Cap', dotColor: 'bg-sky-500' },
+    { key: 'payment_consistency', name: 'Payment Consistency', dotColor: 'bg-emerald-500' },
+    { key: 'nsps_status', name: 'NSPS Registration', dotColor: 'bg-purple-500' },
+    { key: 'peak_demand_ratio', name: 'Peak Demand Ratio', dotColor: 'bg-amber-500' },
+    { key: 'upgrade_history', name: 'Connection Capacity', dotColor: 'bg-rose-500' },
+    { key: 'active_accounts', name: 'Meters at Address', dotColor: 'bg-slate-500' },
+  ];
+
+  const totalWeightVal = Object.values(weights).reduce((s, v) => s + v, 0);
+  const sumPercent = Math.round(totalWeightVal * 100);
+  const isBalanced = sumPercent === 100;
+
+  const handleWeightChange = (key, val) => {
+    setWeights((prev) => ({
+      ...prev,
+      [key]: Math.max(0, Math.min(1, val)),
+    }));
+  };
+
+  const handleNormalize = () => {
+    if (totalWeightVal === 0) return;
+    const normalized = {};
+    Object.keys(weights).forEach((k) => {
+      normalized[k] = Math.round((weights[k] / totalWeightVal) * 100) / 100;
+    });
+    // Ensure exact 1.0 sum by adjusting the first key
+    const sum = Object.values(normalized).reduce((s, v) => s + v, 0);
+    if (sum !== 1.0) {
+      const keys = Object.keys(normalized);
+      const diff = Math.round((1.0 - sum) * 100) / 100;
+      normalized[keys[0]] = Math.round((normalized[keys[0]] + diff) * 100) / 100;
+    }
+    setWeights(normalized);
+  };
 
   return (
     <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto space-y-6">
@@ -130,9 +166,9 @@ export default function VitalsPage() {
             <p className="text-xs text-slate-400 mt-0.5">Interactively zoom, pan, and hover over counties to view equity stats.</p>
           </div>
           <div className="flex gap-4 text-[10px] font-mono text-slate-500 bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-green"></span> Green</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-yellow"></span> Yellow</span>
-            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-red"></span> Red</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-tier-green"></span> Green</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-tier-yellow"></span> Yellow</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-tier-red"></span> Red</span>
           </div>
         </div>
         <div className="h-[280px] md:h-[360px] relative bg-slate-950">
@@ -173,29 +209,66 @@ export default function VitalsPage() {
 
       {/* Model Specifications Callout */}
       <section className="card p-5 border-slate-200 bg-slate-50/50">
-        <h3 className="text-xs uppercase font-mono tracking-widest text-primary font-bold mb-2">
-          Model Configuration Specification
-        </h3>
-        <p className="text-xs text-muted mb-4 leading-relaxed">
-          The national equity algorithm classifies accounts across a 0–100 scale using six weighted variables.
-          Urban / Rural indicators are used strictly for telemetry context and do not alter scores.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {[
-            { name: 'Consumption / Cap', w: '25%' },
-            { name: 'Payment Consistency', w: '22%' },
-            { name: 'NSPS Registration', w: '18%' },
-            { name: 'Peak Demand Ratio', w: '15%' },
-            { name: 'Connection Capacity', w: '12%' },
-            { name: 'Meters at Address', w: '8%' },
-          ].map((varItem) => (
-            <div key={varItem.name} className="bg-white p-3 rounded-lg border border-slate-200 flex flex-col justify-between shadow-sm">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight">
-                {varItem.name}
-              </span>
-              <span className="text-lg font-black text-primary mt-1">{varItem.w}</span>
-            </div>
-          ))}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h3 className="text-xs uppercase font-mono tracking-widest text-primary font-bold">
+              Model Policy Sandbox & Parameter Weights
+            </h3>
+            <p className="text-xs text-muted mt-0.5 leading-relaxed">
+              Drag the sliders below to simulate different weight distributions. 
+              The map dots, KPIs, and charts will recalculate client-side instantly.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold border ${
+              isBalanced 
+                ? 'bg-emerald-950/20 text-emerald-400 border-emerald-800' 
+                : 'bg-amber-950/20 text-amber-400 border-amber-800'
+            }`}>
+              Sum: {sumPercent}%
+            </span>
+            {!isBalanced && (
+              <button
+                type="button"
+                onClick={handleNormalize}
+                className="px-3 py-1 bg-primary text-white text-xs font-bold rounded shadow hover:bg-primary-hover transition-colors"
+              >
+                ⚖️ Auto-Balance (100%)
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {variables.map((varItem) => {
+            const val = weights[varItem.key];
+            return (
+              <div 
+                key={varItem.key} 
+                className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col justify-between"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight flex items-center gap-1.5">
+                    <span className={`w-2 h-2 rounded-full ${varItem.dotColor}`} />
+                    {varItem.name}
+                  </span>
+                  <span className="text-sm font-black text-primary">
+                    {Math.round(val * 100)}%
+                  </span>
+                </div>
+                
+                <input
+                  type="range"
+                  min="0"
+                  max="1.0"
+                  step="0.01"
+                  value={val}
+                  onChange={(e) => handleWeightChange(varItem.key, parseFloat(e.target.value))}
+                  className="w-full accent-primary h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2"
+                />
+              </div>
+            );
+          })}
         </div>
       </section>
 
