@@ -98,6 +98,20 @@ frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"
 if os.path.exists(frontend_dist):
     app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
 
+    @app.get("/favicon.ico", include_in_schema=False)
+    def favicon_ico():
+        p = os.path.join(frontend_dist, "favicon.ico")
+        if os.path.exists(p):
+            return FileResponse(p)
+        raise StarletteHTTPException(status_code=404)
+
+    @app.get("/favicon.png", include_in_schema=False)
+    def favicon_png():
+        p = os.path.join(frontend_dist, "favicon.png")
+        if os.path.exists(p):
+            return FileResponse(p)
+        raise StarletteHTTPException(status_code=404)
+
     @app.exception_handler(StarletteHTTPException)
     async def catch_all(request, exc):
         # Allow API 404s to pass through
