@@ -27,3 +27,7 @@ equitygrid.db
 .DS_Store
 Thumbs.db
 synthetic_results.json
+
+# Agent Customizations & Configs
+.agents/
+skills-lock.json

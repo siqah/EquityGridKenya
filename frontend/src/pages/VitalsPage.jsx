@@ -16,29 +16,68 @@ import {
 
 const COLORS = { GREEN: '#16A34A', YELLOW: '#D97706', RED: '#DC2626' };
 
-function StatCard({ label, value, detail, variant = 'default' }) {
-  const base =
-    variant === 'hero'
-      ? 'bg-primary text-white border-primary md:min-h-[168px] md:flex md:flex-col md:justify-center'
-      : 'bg-surface border-border text-body';
+/**
+ * Custom cross-subsidy indicator gauge (Signature visual element)
+ */
+function SubsidyBalanceGauge({ balance, maxVal = 5000000 }) {
+  const percent = Math.max(-100, Math.min(100, (balance / maxVal) * 100));
+  const offsetPercent = ((percent + 100) / 2).toFixed(1);
+  const isPositive = balance >= 0;
+
   return (
-    <div
-      className={`rounded-xl border p-5 shadow-card ${base} ${
-        variant === 'hero' ? 'md:col-span-1 md:row-span-1 ring-1 ring-primary/10' : ''
-      }`}
-    >
-      <div
-        className={`text-[11px] font-semibold uppercase tracking-wide mb-2 ${
-          variant === 'hero' ? 'text-white/80' : 'text-muted'
-        }`}
-      >
-        {label}
+    <div className="mt-4 space-y-1.5 border-t border-slate-100 pt-3">
+      <div className="flex justify-between text-[10px] font-mono text-slate-400">
+        <span className="text-tier-red">Deficit</span>
+        <span className="font-semibold text-slate-500">Equilibrium</span>
+        <span className="text-tier-green">Surplus</span>
       </div>
-      <div className={`font-extrabold tracking-tight ${variant === 'hero' ? 'text-4xl md:text-5xl' : 'text-2xl'}`}>
-        {value}
+      <div className="h-2 bg-slate-100 rounded-full relative overflow-hidden border border-slate-200/50">
+        {/* Midpoint line */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-slate-300 z-10"></div>
+        {/* Filled bar from center */}
+        <div
+          className={`absolute top-0 bottom-0 transition-all duration-500 ${
+            isPositive ? 'bg-tier-green' : 'bg-tier-red'
+          }`}
+          style={{
+            left: isPositive ? '50%' : `${offsetPercent}%`,
+            right: isPositive ? `${100 - offsetPercent}%` : '50%',
+          }}
+        ></div>
       </div>
-      <div className={`text-xs mt-2 leading-snug ${variant === 'hero' ? 'text-white/90' : 'text-muted'}`}>
-        {detail}
+      <div className="text-[10px] text-center text-muted">
+        Grid Posture: <span className={isPositive ? 'text-tier-green font-bold' : 'text-tier-red font-bold'}>
+          {isPositive ? 'Self-Sustaining' : 'Subsidy Stressed'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Reusable StatCard layout component
+ */
+function StatCard({ label, value, detail, variant = 'default', children }) {
+  const isHero = variant === 'hero';
+  const baseClasses = isHero
+    ? 'bg-primary text-white border-primary ring-1 ring-primary/10'
+    : 'bg-white border-slate-200 text-body';
+
+  return (
+    <div className={`rounded-xl border p-5 shadow-card flex flex-col justify-between min-h-[148px] ${baseClasses}`}>
+      <div>
+        <div className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${isHero ? 'text-white/70' : 'text-muted'}`}>
+          {label}
+        </div>
+        <div className={`font-extrabold tracking-tight ${isHero ? 'text-3xl' : 'text-2xl'}`}>
+          {value}
+        </div>
+      </div>
+      <div>
+        <div className={`text-xs leading-snug mt-2 ${isHero ? 'text-white/80' : 'text-muted'}`}>
+          {detail}
+        </div>
+        {children}
       </div>
     </div>
   );
@@ -48,9 +87,9 @@ export default function VitalsPage() {
   const { stats } = useSyntheticData();
 
   const donutData = [
-    { name: 'Green', value: stats.classification_counts.GREEN, key: 'GREEN' },
-    { name: 'Yellow', value: stats.classification_counts.YELLOW, key: 'YELLOW' },
-    { name: 'Red', value: stats.classification_counts.RED, key: 'RED' },
+    { name: 'Green (Lifeline)', value: stats.classification_counts.GREEN, key: 'GREEN' },
+    { name: 'Yellow (Standard)', value: stats.classification_counts.YELLOW, key: 'YELLOW' },
+    { name: 'Red (High Capacity)', value: stats.classification_counts.RED, key: 'RED' },
   ];
 
   const leakageBars = (stats.topLeakageCounties || []).map((c) => ({
@@ -61,73 +100,111 @@ export default function VitalsPage() {
   const revenuePositive = stats.revenueBalance >= 0;
 
   return (
-    <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto">
-      <div className="mb-6">
-        <p className="text-sm text-muted">
-          Live synthetic cohort · {stats.total_accounts.toLocaleString()} accounts ·{' '}
-          {stats.counties_covered} counties · {stats.turkana_exceptions} luxury-in-poverty flags
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          label="Total subsidies managed (est. annual)"
-          value={`KSh ${stats.subsidyManaged.toLocaleString()}`}
-          detail={`${stats.classification_counts.GREEN} GREEN households in the synthetic tariff model.`}
-        />
-        <StatCard
-          label="Detected leakage (est. annual)"
-          value={`KSh ${stats.leakageDetected.toLocaleString()}`}
-          detail={`${stats.classification_counts.RED} RED accounts contributing cross-subsidy stress.`}
-        />
-        <div
-          className={`rounded-xl border-2 p-0 overflow-hidden shadow-card ${
-            revenuePositive ? 'border-tier-green' : 'border-tier-red'
-          }`}
-        >
-          <StatCard
-            label="Revenue balance"
-            value={`KSh ${revenuePositive ? '+' : ''}${stats.revenueBalance.toLocaleString()}`}
-            detail={
-              revenuePositive
-                ? 'Surplus versus modelled subsidy outflow — cross-subsidy appears positive.'
-                : 'Deficit versus modelled subsidy outflow — review fee and discount levers.'
-            }
-          />
+    <PageFade className="p-5 md:p-8 max-w-[1440px] mx-auto space-y-6">
+      {/* EPRA Board Header */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-4 gap-4">
+        <div>
+          <span className="text-[10px] uppercase font-mono tracking-widest bg-primary/10 text-primary px-2.5 py-1 rounded-full font-bold">
+            EPRA Regulatory Portal
+          </span>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-2">
+            Energy Equity Intelligence
+          </h1>
+          <p className="text-xs text-muted mt-1 leading-relaxed">
+            Live database cohort: <span className="font-semibold text-slate-800">{stats.total_accounts.toLocaleString()} households</span> ·{' '}
+            <span className="font-semibold text-slate-800">{stats.counties_covered} counties</span> ·{' '}
+            <span className="font-semibold text-slate-800">{stats.turkana_exceptions} leakage overrides</span>
+          </p>
         </div>
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <span className="text-xs font-mono font-semibold text-slate-500">Live Telemetry Synchronized</span>
+        </div>
+      </header>
+
+      {/* Hero Thesis Element — 3D Map Centered at Top */}
+      <section className="card overflow-hidden border-slate-200">
+        <div className="px-5 py-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold text-primary">National Choropleth Extrusion Map</h2>
+            <p className="text-xs text-slate-400 mt-0.5">3D heights represent overall subsidy leakage score per county.</p>
+          </div>
+          <div className="flex gap-4 text-[10px] font-mono text-slate-500 bg-white px-3 py-1 rounded border border-slate-200 shadow-sm">
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-green"></span> Green</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-yellow"></span> Yellow</span>
+            <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-tier-red"></span> Red</span>
+          </div>
+        </div>
+        <div className="h-[380px] md:h-[500px] relative bg-slate-950">
+          <KenyaDeckMap className="h-full min-h-0" />
+        </div>
+      </section>
+
+      {/* Analytical KPI Cards Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="National subsidy efficiency score"
+          label="Managed Subsidies (Annual)"
+          value={`KSh ${stats.subsidyManaged.toLocaleString()}`}
+          detail={`${stats.classification_counts.GREEN} Green tier households utilizing Lifeline tariffs.`}
+        />
+        <StatCard
+          label="Detected Leakage (Annual)"
+          value={`KSh ${stats.leakageDetected.toLocaleString()}`}
+          detail={`${stats.classification_counts.RED} Red tier high-consumption accounts flagged.`}
+        />
+        <StatCard
+          label="Cross-Subsidy Balance"
+          value={`KSh ${revenuePositive ? '+' : ''}${stats.revenueBalance.toLocaleString()}`}
+          detail={
+            revenuePositive
+              ? 'Surplus: premium surcharges outweigh lifeline outflows.'
+              : 'Deficit: lifeline outflows exceed surcharge revenues.'
+          }
+        >
+          <SubsidyBalanceGauge balance={stats.revenueBalance} />
+        </StatCard>
+        <StatCard
+          label="Subsidy Efficiency Reach"
           value={`${stats.efficiencyScore}%`}
-          detail="Share of GREEN households that are verified NSPS beneficiaries in the synthetic cohort (illustrative reach metric)."
+          detail="Share of Green households verified as registered NSPS social protection beneficiaries."
           variant="hero"
         />
-      </div>
+      </section>
 
-      <div className="card p-5 mb-6 border-primary/15 bg-navactive/30">
-        <div className="text-sm font-bold text-primary mb-2">Equity model — six variables (weights)</div>
-        <p className="text-xs text-muted mb-3 leading-relaxed">
-          Final score is 0–100 (higher = stronger affluence / cross-subsidy risk). Urban / rural appears on accounts for
-          context only and is not part of the weighted score.
+      {/* Model Specifications Callout */}
+      <section className="card p-5 border-slate-200 bg-slate-50/50">
+        <h3 className="text-xs uppercase font-mono tracking-widest text-primary font-bold mb-2">
+          Model Configuration Specification
+        </h3>
+        <p className="text-xs text-muted mb-4 leading-relaxed">
+          The national equity algorithm classifies accounts across a 0–100 scale using six weighted variables.
+          Urban / Rural indicators are used strictly for telemetry context and do not alter scores.
         </p>
-        <ul className="text-sm text-body space-y-1.5 list-disc pl-5">
-          <li>Consumption per capita proxy — 25%</li>
-          <li>Payment consistency — 22%</li>
-          <li>NSPS registration status — 18%</li>
-          <li>Peak demand ratio — 15%</li>
-          <li>Upgrade history — 12%</li>
-          <li>Active accounts at address — 8%</li>
-        </ul>
-      </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          {[
+            { name: 'Consumption / Cap', w: '25%' },
+            { name: 'Payment Consistency', w: '22%' },
+            { name: 'NSPS Registration', w: '18%' },
+            { name: 'Peak Demand Ratio', w: '15%' },
+            { name: 'Connection Capacity', w: '12%' },
+            { name: 'Meters at Address', w: '8%' },
+          ].map((varItem) => (
+            <div key={varItem.name} className="bg-white p-3 rounded-lg border border-slate-200 flex flex-col justify-between shadow-sm">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide leading-tight">
+                {varItem.name}
+              </span>
+              <span className="text-lg font-black text-primary mt-1">{varItem.w}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <div className="mb-6 h-[350px] md:h-[500px] min-h-0">
-        <KenyaDeckMap className="h-full min-h-0" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="card flex flex-col min-h-[320px]">
-          <div className="px-5 py-4 border-b border-border">
-            <span className="text-sm font-semibold text-primary">Classification mix</span>
-            <p className="text-xs text-muted mt-1">Donut shows exact GREEN / YELLOW / RED counts.</p>
+      {/* Secondary Chart Analytics */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card flex flex-col min-h-[320px] border-slate-200">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <span className="text-sm font-semibold text-primary">Tariff Classification Breakdown</span>
+            <p className="text-xs text-muted mt-1">Relative division of synthetic households across categories.</p>
           </div>
           <div className="p-4 flex flex-col sm:flex-row items-center gap-4 flex-1">
             <div className="w-full sm:w-1/2 h-[240px]">
@@ -166,10 +243,10 @@ export default function VitalsPage() {
           </div>
         </div>
 
-        <div className="card flex flex-col min-h-[320px]">
-          <div className="px-5 py-4 border-b border-border">
-            <span className="text-sm font-semibold text-primary">Leakage by county</span>
-            <p className="text-xs text-muted mt-1">Top 5 counties by modelled leakage score.</p>
+        <div className="card flex flex-col min-h-[320px] border-slate-200">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <span className="text-sm font-semibold text-primary">Cross-Subsidy Leakage by County</span>
+            <p className="text-xs text-muted mt-1">Top 5 counties ranked by total leakage risk index.</p>
           </div>
           <div className="p-4 flex-1 min-h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -186,7 +263,7 @@ export default function VitalsPage() {
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
+      </section>
     </PageFade>
   );
 }

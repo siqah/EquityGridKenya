@@ -261,6 +261,12 @@ def get_stats(db: Session = Depends(get_db)):
     )
 
 
+@router.get("/households", response_model=list[ResultRecord])
+def get_all_households(db: Session = Depends(get_db)):
+    rows = db.query(EquityResult).all()
+    return [_result_record_from_orm(r) for r in rows]
+
+
 @router.get("/health", response_model=HealthResponse)
 def health_check(db: Session = Depends(get_db)):
     settings = get_settings()

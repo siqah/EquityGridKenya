@@ -3,6 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import PageFade from '../components/Layout/PageFade';
 import { useSyntheticData } from '../context/SyntheticDataContext';
 import {
+  calculatePolicySimulation,
+  generateSimulationTableRows,
+} from '../data/policyModel';
+import {
   ResponsiveContainer,
   LineChart,
   Line,
@@ -30,50 +34,16 @@ export default function PolicySimulatorPage() {
   }, [searchParams, setSearchParams]);
 
   const model = useMemo(() => {
-    const subsidyCost = Math.round(stats.subsidyManaged * (greenDisc / 50) * 0.85);
-    const feeRevenue = Math.round(stats.leakageDetected * (redFee / 30) * 0.75);
-    const net = feeRevenue - subsidyCost;
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const growth = 1 + i * 0.015;
-      return {
-        month: `M${i + 1}`,
-        current: Math.round((feeRevenue * 0.92 - subsidyCost * 1.05) * growth),
-        conservative: Math.round((feeRevenue * 0.88 - subsidyCost * 0.97) * growth),
-        aggressive: Math.round((feeRevenue * 1.05 - subsidyCost * 0.9) * growth),
-      };
-    });
-    return { subsidyCost, feeRevenue, net, months };
-  }, [greenDisc, redFee, stats.leakageDetected, stats.subsidyManaged]);
+    return calculatePolicySimulation(stats, greenDisc, redFee);
+  }, [greenDisc, redFee, stats]);
 
   const netPositive = model.net >= 0;
   const tilt = Math.max(-18, Math.min(18, model.net / (stats.subsidyManaged || 1) * 40));
 
-  const tableRows = [
-    {
-      label: 'Avg bill — GREEN tier (model)',
-      current: `KSh ${Math.round(900 - greenDisc * 6).toLocaleString()}`,
-      conservative: `KSh ${Math.round(920 - greenDisc * 5.2).toLocaleString()}`,
-      aggressive: `KSh ${Math.round(860 - greenDisc * 7.1).toLocaleString()}`,
-    },
-    {
-      label: 'Avg bill — RED tier (model)',
-      current: `KSh ${Math.round(2100 + redFee * 35).toLocaleString()}`,
-      conservative: `KSh ${Math.round(2050 + redFee * 28).toLocaleString()}`,
-      aggressive: `KSh ${Math.round(2250 + redFee * 44).toLocaleString()}`,
-    },
-    {
-      label: 'Revenue impact (annual, est.)',
-      current: `KSh ${Math.round(model.net * 0.6).toLocaleString()}`,
-      conservative: `KSh ${Math.round(model.net * 0.85).toLocaleString()}`,
-      aggressive: `KSh ${Math.round(model.net * 1.15).toLocaleString()}`,
-    },
-    {
-      label: 'Households protected (GREEN)',
-      current: `${stats.classification_counts.GREEN}`,
-      conservative: `${Math.round(stats.classification_counts.GREEN * 0.97)}`,
-      aggressive: `${Math.round(stats.classification_counts.GREEN * 1.04)}`,
-    },
-  ];
+  const tableRows = useMemo(() => {
+    return generateSimulationTableRows(stats, greenDisc, redFee, model);
+  }, [stats, greenDisc, redFee, model]);
+
 
   return (
     <PageFade className="p-5 md:p-8 max-w-[1200px] mx-auto space-y-6">

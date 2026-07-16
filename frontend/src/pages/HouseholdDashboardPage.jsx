@@ -91,7 +91,7 @@ function threeWaySplit(account) {
 }
 
 export default function HouseholdDashboardPage() {
-  const { isHousehold, householdAccountHash } = useDashboardMode();
+  const { isHousehold, householdAccountHash, setHouseholdAccount } = useDashboardMode();
   const { accounts } = useSyntheticData();
   const { speak } = useNaji();
   const [unit, setUnit] = useState('kwh');
@@ -99,11 +99,17 @@ export default function HouseholdDashboardPage() {
   const [najiLine, setNajiLine] = useState('');
   const rate = 22;
 
-  const account = useMemo(
-    () =>
-      accounts.find((a) => a.account_hash.toUpperCase() === (householdAccountHash || '').toUpperCase()) || null,
-    [accounts, householdAccountHash],
-  );
+  const demoAccounts = useMemo(() => {
+    const green = accounts.find((a) => a.classification === 'GREEN');
+    const yellow = accounts.find((a) => a.classification === 'YELLOW');
+    const red = accounts.find((a) => a.classification === 'RED');
+    return { green, yellow, red };
+  }, [accounts]);
+
+  const account = useMemo(() => {
+    const activeHash = householdAccountHash || (accounts.length > 0 ? accounts[0].account_hash : null);
+    return accounts.find((a) => a.account_hash.toUpperCase() === (activeHash || '').toUpperCase()) || null;
+  }, [accounts, householdAccountHash]);
 
   const series = useMemo(() => (account ? sixMonthSeries(account) : []), [account]);
   const chartData = useMemo(
@@ -149,6 +155,55 @@ export default function HouseholdDashboardPage() {
 
   return (
     <PageFade className="p-4 sm:p-6 md:p-10 max-w-2xl mx-auto space-y-8 pb-28">
+      {/* Dynamic Demo Profile Switcher */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div>
+          <span className="text-xs font-bold text-primary uppercase tracking-wide block">Demo Profiles</span>
+          <p className="text-[11px] text-muted mt-0.5">Test how different household tariffs react to grid rules.</p>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {demoAccounts.green && (
+            <button
+              type="button"
+              onClick={() => setHouseholdAccount(demoAccounts.green.account_hash)}
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${
+                account?.account_hash === demoAccounts.green.account_hash
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                  : 'bg-slate-50 text-emerald-800 border-slate-200 hover:bg-emerald-50'
+              }`}
+            >
+              🟢 Green (Lifeline)
+            </button>
+          )}
+          {demoAccounts.yellow && (
+            <button
+              type="button"
+              onClick={() => setHouseholdAccount(demoAccounts.yellow.account_hash)}
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${
+                account?.account_hash === demoAccounts.yellow.account_hash
+                  ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                  : 'bg-slate-50 text-amber-800 border-slate-200 hover:bg-amber-50'
+              }`}
+            >
+              🟡 Yellow (Standard)
+            </button>
+          )}
+          {demoAccounts.red && (
+            <button
+              type="button"
+              onClick={() => setHouseholdAccount(demoAccounts.red.account_hash)}
+              className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${
+                account?.account_hash === demoAccounts.red.account_hash
+                  ? 'bg-red-600 text-white border-red-600 shadow-sm'
+                  : 'bg-slate-50 text-red-800 border-slate-200 hover:bg-red-50'
+              }`}
+            >
+              🔴 Red (Capacity Stress)
+            </button>
+          )}
+        </div>
+      </div>
+
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <span className="font-mono text-lg font-bold text-slate-900">{account.account_hash}</span>
