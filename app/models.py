@@ -1,8 +1,7 @@
 """
 EquityGrid Kenya — SQLAlchemy ORM Models
 
-Defines the EquityResult and AuditTrail tables.
-All account IDs stored as SHA-256 hashes for privacy.
+Six-variable equity model. Account IDs stored as SHA-256 hashes.
 """
 
 import enum
@@ -25,51 +24,44 @@ from app.database import Base
 
 class Classification(enum.Enum):
     """Equity classification categories."""
-    GREEN = "GREEN"    # Subsidize — genuine energy poverty
-    YELLOW = "YELLOW"  # Standard — no adjustment needed
-    RED = "RED"        # Luxury/Anomaly — cross-subsidy contributor
+    GREEN = "GREEN"
+    YELLOW = "YELLOW"
+    RED = "RED"
 
 
 class EquityResult(Base):
     """
-    Stores the equity scoring result for each household account.
-    Account IDs are SHA-256 hashed — no raw PII is stored.
+    Stores inputs and scores for the 6-variable equity model.
     """
     __tablename__ = "equity_results"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     account_id_hash = Column(String(64), unique=True, nullable=False, index=True)
 
-    # Geographic Signal
-    county = Column(String(50), nullable=False)
-    poverty_index = Column(Float, nullable=False)
+    county = Column(String(80), nullable=False)
+    ward_avg_household_size = Column(Float, nullable=False)
+    kwh_month = Column(Float, nullable=False)
+    avg_disconnection_days_per_month = Column(Float, nullable=False)
+    nsps_registered = Column(Boolean, nullable=False, default=False)
+    county_nsps_coverage_rate = Column(Float, nullable=False)
+    peak_demand_ratio = Column(Float, nullable=False)
+    has_three_phase = Column(Boolean, nullable=False, default=False)
+    connection_capacity_kva = Column(Float, nullable=False)
+    accounts_same_address = Column(Integer, nullable=False, default=1)
+    urban_rural_classification = Column(String(24), nullable=False, default="Rural")
 
-    # Token Purchase Signal
-    token_avg_amount = Column(Float, nullable=False)      # KSh per purchase
-    token_frequency = Column(Integer, nullable=False)      # purchases per month
+    # Sub-scores 0–100
+    score_consumption_per_capita = Column(Float, nullable=False)
+    score_payment_consistency = Column(Float, nullable=False)
+    score_nsps_status = Column(Float, nullable=False)
+    score_peak_demand_ratio = Column(Float, nullable=False)
+    score_upgrade_history = Column(Float, nullable=False)
+    score_active_accounts = Column(Float, nullable=False)
 
-    # Consumption Signal
-    total_kwh = Column(Float, nullable=False)
-    peak_load_kw = Column(Float, nullable=False)
-    has_load_spike = Column(Boolean, default=False)
-
-    # Computed Scores (0-100 each)
-    geographic_score = Column(Float, nullable=False)
-    token_score = Column(Float, nullable=False)
-    # Legacy name: stores peak-load / spike profile (Variable — load layer)
-    consumption_score = Column(Float, nullable=False)
-    monthly_kwh_equity_score = Column(Float, nullable=False, default=0.0)
-    location_equity_score = Column(Float, nullable=False, default=0.0)
-    load_profile_score = Column(Float, nullable=False, default=0.0)
-    location_type = Column(String(32), nullable=False, default="county_aggregate")
-    location_subcounty = Column(String(120), nullable=True)
-    geo_layer_fingerprint = Column(String(32), nullable=True)
-
-    # Final Result
     equity_score = Column(Float, nullable=False)
     classification = Column(SAEnum(Classification), nullable=False)
     suggested_tariff_multiplier = Column(Float, nullable=False)
-    flags = Column(Text, default="")  # JSON string for flags like "TURKANA_EXCEPTION"
+    flags = Column(Text, default="")
 
     created_at = Column(
         DateTime,
@@ -77,40 +69,31 @@ class EquityResult(Base):
         nullable=False,
     )
 
-    # Composite index for common query patterns
     __table_args__ = (
         Index("ix_classification_county", "classification", "county"),
     )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<EquityResult(hash={self.account_id_hash[:12]}..., "
-            f"county={self.county}, "
-            f"classification={self.classification.value}, "
+            f"county={self.county}, cls={self.classification.value}, "
             f"score={self.equity_score:.1f})>"
         )
 
 
 class AuditTrail(Base):
-    """
-    Immutable audit log for all scoring operations.
-    Tracks every score calculation and reclassification.
-    """
+    """Immutable audit log for scoring operations."""
     __tablename__ = "audit_trail"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     account_id_hash = Column(String(64), nullable=False, index=True)
-    action = Column(String(50), nullable=False)  # SCORE_CALCULATED, RECLASSIFIED, etc.
-    details = Column(Text, default="")            # JSON string with action details
+    action = Column(String(50), nullable=False)
+    details = Column(Text, default="")
     timestamp = Column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
 
-    def __repr__(self):
-        return (
-            f"<AuditTrail(hash={self.account_id_hash[:12]}..., "
-            f"action={self.action}, "
-            f"time={self.timestamp})>"
-        )
+    def __repr__(self) -> str:
+        return f"<AuditTrail(hash={self.account_id_hash[:12]}..., action={self.action})>"

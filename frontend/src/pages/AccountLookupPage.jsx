@@ -1,13 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import NajiFloatingWidget from '../components/Naji/NajiFloatingWidget';
 import PageFade from '../components/Layout/PageFade';
 import { useSyntheticData } from '../context/SyntheticDataContext';
-import { LOOKUP_SIGNAL_GROUPS } from '../constants/signalLabels';
-
-function scoreBarColor(score) {
-  if (score <= 40) return 'bg-tier-green';
-  if (score <= 70) return 'bg-tier-yellow';
-  return 'bg-tier-red';
-}
+import { LOOKUP_CARDS, tierBarClass, buildExplanationPrompt } from '../constants/signalLabels';
 
 function personaFor(account) {
   if (account.classification === 'GREEN') {
@@ -20,39 +16,39 @@ function personaFor(account) {
 }
 
 function staticExplanation(account) {
-  return `Although this account is recorded in ${account.county}, the usage and liquidity pattern (${account.kwh_month} kWh/month, peak ${account.peak_kw} kW, average token KSh ${account.token_avg_ksh}) ${account.classification === 'RED' ? 'aligns with higher-than-expected capacity for the vulnerability band' : 'aligns with constrained purchasing and baseload consistent with lifeline protection'}. Flags such as ${(account.flags || []).join(', ') || 'none'} are interpreted alongside county poverty index ${account.poverty_index} to keep decisions reviewable by regulators.`;
+  const kpp = account.kwh_per_person ?? account.kwh_month / Math.max(account.ward_avg_household_size, 0.5);
+  const disc = account.avg_disconnection_days_per_month;
+  const peakPct = Math.round((account.peak_demand_ratio ?? 0) * 100);
+  const nsps = account.nsps_registered ? 'is recorded on the national social protection register' : 'is not on that register';
+  const phase = account.has_three_phase ? 'uses a three-phase service connection' : 'uses a standard single-phase connection';
+  const meters = account.accounts_same_address;
+  return `This household in ${account.county} ${nsps}, ${phase}, and has about ${kpp.toFixed(1)} kWh per person each month with roughly ${disc} disconnection days and about ${peakPct}% of energy in the evening peak; ${meters === 1 ? 'only one meter is linked to the address' : `${meters} meters are linked to the same address`}. Taken together, that picture ${account.classification === 'RED' ? 'points to stronger capacity than a lifeline household and supports a contributor classification' : account.classification === 'GREEN' ? 'is consistent with constrained circumstances and supports a protected lifeline classification' : 'sits between those extremes and supports standard retail terms'}.`;
 }
 
-function perCapitaBox(account) {
-  const ward = account.ward || account.county;
-  const hh = account.classification === 'RED' ? 3.1 : account.classification === 'YELLOW' ? 4.2 : 5.4;
-  const perCap = account.kwh_month / hh;
-  const benchmark = 55;
-  const above = perCap > benchmark;
+function contextCard(account) {
+  const kpp = account.kwh_per_person ?? account.kwh_month / Math.max(account.ward_avg_household_size, 0.5);
   return (
     <div className="card p-4 border-border bg-surface-muted/60">
-      <div className="text-sm font-bold text-primary mb-2">Per capita analysis</div>
+      <div className="text-sm font-bold text-primary mb-2">Household context</div>
       <ul className="text-sm text-body space-y-2">
         <li>
-          <span className="text-muted">Ward / area:</span> <span className="font-semibold">{ward}</span>
+          <span className="text-muted">Urban / rural:</span>{' '}
+          <span className="font-semibold">{account.urban_rural_classification}</span>
+        </li>
+        {account.ward && (
+          <li>
+            <span className="text-muted">Ward / area label:</span>{' '}
+            <span className="font-semibold">{account.ward}</span>
+          </li>
+        )}
+        <li>
+          <span className="text-muted">Ward avg. household size (model input):</span>{' '}
+          <span className="font-semibold">{account.ward_avg_household_size}</span>
         </li>
         <li>
-          <span className="text-muted">Modelled household size:</span>{' '}
-          <span className="font-semibold">{hh.toFixed(1)}</span> people
-        </li>
-        <li>
-          <span className="text-muted">Effective kWh per person:</span>{' '}
-          <span className="font-semibold">{perCap.toFixed(1)} kWh</span>
-        </li>
-        <li>
-          <span className="text-muted">National benchmark:</span>{' '}
-          <span className="font-semibold">{benchmark} kWh</span> / person (illustrative)
-        </li>
-        <li>
-          <span className="text-muted">Verdict:</span>{' '}
-          <span className={`font-semibold ${above ? 'text-tier-red' : 'text-tier-green'}`}>
-            {above ? 'Above benchmark — review for luxury baseload' : 'At or below benchmark — consistent with vulnerability'}
-          </span>
+          <span className="text-muted">kWh per person (derived):</span>{' '}
+          <span className="font-semibold">{kpp.toFixed(1)}</span>{' '}
+          <span className="text-muted">(benchmark 22)</span>
         </li>
       </ul>
     </div>
@@ -61,7 +57,13 @@ function perCapitaBox(account) {
 
 export default function AccountLookupPage() {
   const { accounts } = useSyntheticData();
+  const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('ACC_168669');
+
+  useEffect(() => {
+    const a = searchParams.get('account');
+    if (a && a.trim()) setQuery(a.trim());
+  }, [searchParams]);
 
   const account = useMemo(() => {
     const q = query.trim().toUpperCase();
@@ -69,8 +71,15 @@ export default function AccountLookupPage() {
   }, [accounts, query]);
 
   const persona = account ? personaFor(account) : null;
+  const llmPrompt = account ? buildExplanationPrompt({
+    ...account,
+    final_score: account.final_score,
+    avg_disconnection_days_per_month: account.avg_disconnection_days_per_month,
+    peak_demand_ratio: account.peak_demand_ratio,
+  }) : '';
 
   return (
+    <>
     <PageFade className="p-5 md:p-8 max-w-[1100px] mx-auto space-y-5">
       <div className="card p-4 flex flex-col md:flex-row gap-3 md:items-end">
         <div className="flex-1">
@@ -85,13 +94,15 @@ export default function AccountLookupPage() {
             className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm font-mono text-body focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
-        <button
-          type="button"
-          className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold"
-          onClick={() => setQuery('ACC_168669')}
-        >
-          Reset demo (ACC_168669)
-        </button>
+        <div className="flex flex-wrap gap-2 items-end">
+          <button
+            type="button"
+            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold"
+            onClick={() => setQuery('ACC_168669')}
+          >
+            Reset demo (ACC_168669)
+          </button>
+        </div>
       </div>
 
       {!account && (
@@ -110,8 +121,16 @@ export default function AccountLookupPage() {
 
       {account && (
         <div className="space-y-5 animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {LOOKUP_SIGNAL_GROUPS.map((g) => {
+          <div className="flex justify-end">
+            <Link
+              to={`/household/${encodeURIComponent(account.account_hash)}`}
+              className="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 shadow-sm"
+            >
+              View Household Report
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {LOOKUP_CARDS.map((g) => {
               const score = Math.min(100, Math.max(0, g.score(account)));
               return (
                 <div key={g.key} className="card p-4 flex flex-col gap-2">
@@ -120,7 +139,13 @@ export default function AccountLookupPage() {
                   </div>
                   <div className="text-sm font-bold text-primary">{g.title}</div>
                   <div className="text-3xl font-extrabold text-body">{score}</div>
-                  <div className="text-xs text-muted leading-snug">{g.summary(account)}</div>
+                  <div className="text-xs text-muted leading-snug">{g.line(account)}</div>
+                  <div className="h-2 rounded-full bg-surface-muted border border-border overflow-hidden mt-1">
+                    <div
+                      className={`h-full rounded-full transition-all ${tierBarClass(score)}`}
+                      style={{ width: `${score}%` }}
+                    />
+                  </div>
                 </div>
               );
             })}
@@ -129,12 +154,12 @@ export default function AccountLookupPage() {
           <div className="card p-4">
             <div className="flex justify-between text-sm font-semibold text-body mb-2">
               <span>Equity score</span>
-              <span className="font-mono">{account.score}</span>
+              <span className="font-mono">{account.final_score}</span>
             </div>
             <div className="h-4 rounded-full bg-surface-muted border border-border overflow-hidden flex">
               <div
-                className={`h-full ${scoreBarColor(account.score)}`}
-                style={{ width: `${Math.min(100, account.score)}%` }}
+                className={`h-full ${tierBarClass(account.final_score)}`}
+                style={{ width: `${Math.min(100, account.final_score)}%` }}
               />
             </div>
             <div className="mt-3">
@@ -147,13 +172,21 @@ export default function AccountLookupPage() {
           <div className="card p-4 bg-surface-muted border-dashed">
             <p className="text-sm italic text-muted leading-relaxed">{staticExplanation(account)}</p>
             <p className="text-xs text-muted mt-3">
-              Live LLM explainability (Claude / GPT) would call out this same structure with tighter prose — here we ship a deterministic narrative for demo reliability.
+              Live LLM explainability (Claude / GPT) would use the same facts with tighter prose — here we ship a deterministic narrative for demo reliability.
             </p>
+            <details className="mt-4 text-xs">
+              <summary className="cursor-pointer font-semibold text-primary">Prompt sent to the AI API</summary>
+              <pre className="mt-2 p-3 rounded-lg bg-surface border border-border overflow-x-auto whitespace-pre-wrap text-[11px] text-body leading-relaxed">
+                {llmPrompt}
+              </pre>
+            </details>
           </div>
 
-          {perCapitaBox(account)}
+          {contextCard(account)}
         </div>
       )}
     </PageFade>
+    <NajiFloatingWidget />
+    </>
   );
 }

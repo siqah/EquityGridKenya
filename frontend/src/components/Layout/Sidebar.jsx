@@ -1,54 +1,93 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useDashboardMode } from '../../context/DashboardModeContext';
+import { useSyntheticData } from '../../context/SyntheticDataContext';
 
-const navItems = [
-  { path: '/', label: 'Vitals Overview', icon: '📊' },
-  { path: '/accounts', label: 'Account Intelligence', icon: '🔍' },
-  { path: '/alerts', label: 'Anomaly Alerts', icon: '🚨' },
-  { path: '/simulator', label: 'Policy Simulator', icon: '⚖️' },
-  { path: '/lookup', label: 'Account Lookup', icon: '🔎' },
-  { path: '/methodology', label: 'How AI Works', icon: '🧠' },
+const regulatorNav = [
+  { path: '/', label: 'Vitals Overview', icon: 'VO' },
+  { path: '/accounts', label: 'Account Intelligence', icon: 'AI' },
+  { path: '/alerts', label: 'Anomaly Alerts', icon: 'AA' },
+  { path: '/simulator', label: 'Policy Simulator', icon: 'PS' },
+  { path: '/lookup', label: 'Account Lookup', icon: 'AL' },
+  { path: '/my-energy-report', label: 'My Energy Report', icon: 'MR' },
+  { path: '/methodology', label: 'Methodology', icon: 'MW' },
 ];
 
 export default function Sidebar({ mobileOpen, onClose }) {
+  const navigate = useNavigate();
+  const { mode, setMode, isHousehold, householdAccountHash, setHouseholdAccount } = useDashboardMode();
+  const { accounts } = useSyntheticData();
+
+  const householdNav = [
+    { path: '/my-account', label: 'My Home Dashboard', icon: 'HD' },
+    {
+      path: householdAccountHash
+        ? `/household/${encodeURIComponent(householdAccountHash)}`
+        : '/my-energy-report',
+      label: 'Detailed Energy Report',
+      icon: 'ER',
+    },
+    { path: '/lookup', label: 'Account Lookup', icon: 'AL' },
+  ];
+
+  const navItems = isHousehold ? householdNav : regulatorNav;
+
   const linkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border-l-[3px] transition-colors no-underline ${
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 no-underline ${
       isActive
-        ? 'bg-navactive text-primary border-primary'
-        : 'border-transparent text-body hover:bg-surface-muted text-muted hover:text-body'
+        ? 'bg-navactive text-primary font-semibold shadow-[inset_0_0_0_1px_rgba(27,58,107,0.08)]'
+        : 'text-body hover:bg-surface-muted text-muted hover:text-body'
     }`;
+
+  const handleModeSwitch = (targetMode) => {
+    setMode(targetMode);
+    if (targetMode === 'regulator') {
+      navigate('/');
+    } else {
+      // Find a default account to display if no active household is set
+      if (!householdAccountHash && accounts && accounts.length > 0) {
+        setHouseholdAccount(accounts[0].account_hash);
+      }
+      navigate('/my-account');
+    }
+    onClose?.();
+  };
 
   const nav = (
     <>
       <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
-        Dashboard
+        {isHousehold ? 'My Account' : 'Dashboard'}
       </div>
       {navItems.map((item) => (
         <NavLink
-          key={item.path}
+          key={item.label}
           to={item.path}
-          end={item.path === '/'}
+          end={item.path === '/' || item.path === '/my-account'}
           className={linkClass}
           onClick={() => onClose?.()}
         >
-          <span className="text-lg w-7 text-center shrink-0" aria-hidden>
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-[9px] font-bold tracking-tight text-slate-500 shrink-0" aria-hidden>
             {item.icon}
           </span>
           <span>{item.label}</span>
         </NavLink>
       ))}
-      <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
-        External
-      </div>
-      <a
-        href="http://127.0.0.1:8000/docs"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline border-l-[3px] border-transparent"
-        onClick={() => onClose?.()}
-      >
-        <span className="text-lg w-7 text-center shrink-0">📡</span>
-        <span>API Docs</span>
-      </a>
+      {!isHousehold && (
+        <>
+          <div className="px-4 pt-6 pb-2 text-[11px] font-semibold text-muted uppercase tracking-wider">
+            External
+          </div>
+          <a
+            href="http://127.0.0.1:8000/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-body hover:bg-surface-muted no-underline"
+            onClick={() => onClose?.()}
+          >
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-[9px] font-bold text-slate-500 shrink-0">API</span>
+            <span>API Docs</span>
+          </a>
+        </>
+      )}
     </>
   );
 
@@ -67,8 +106,9 @@ export default function Sidebar({ mobileOpen, onClose }) {
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0 lg:flex`}
       >
-        <div className="p-5 border-b border-border flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center text-lg font-bold shrink-0">
+        {/* Sidebar Brand Header */}
+        <div className="p-5 border-b border-border flex items-center gap-3 bg-surface">
+          <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center text-sm font-bold tracking-[-0.04em] shrink-0 shadow-sm">
             EG
           </div>
           <div className="flex flex-col min-w-0">
@@ -76,8 +116,33 @@ export default function Sidebar({ mobileOpen, onClose }) {
               EquityGrid Kenya
             </span>
             <span className="text-[11px] font-medium text-muted uppercase tracking-wide">
-              Energy intelligence
+              {isHousehold ? 'Household view' : 'Energy intelligence'}
             </span>
+          </div>
+        </div>
+
+        {/* Dynamic Mode Switcher (Always visible on all screen sizes) */}
+        <div className="px-4 py-4 border-b border-border bg-slate-50/70">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workspace</p>
+          <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-0.5 border border-slate-200 shadow-inner">
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('regulator')}
+              className={`py-1.5 rounded-md text-xs font-bold text-center transition-all ${
+                !isHousehold ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Regulator
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('household')}
+              className={`py-1.5 rounded-md text-xs font-bold text-center transition-all ${
+                isHousehold ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              Household
+            </button>
           </div>
         </div>
 

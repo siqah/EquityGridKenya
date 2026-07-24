@@ -1,112 +1,112 @@
-import { createContext, useContext, useMemo } from 'react';
-import { generateSyntheticAccounts } from '../data/syntheticGenerator';
+import { createContext, useCallback, useContext, useMemo, useState, useEffect } from 'react';
+import { computeKpis } from '../data/kpiEngine';
 
 const SyntheticDataContext = createContext(null);
 
-function aggregateByCounty(accounts) {
-  const m = new Map();
-  accounts.forEach((a) => {
-    const key = a.county_base || a.county.split('(')[0].trim();
-    if (!m.has(key)) {
-      m.set(key, { total: 0, GREEN: 0, YELLOW: 0, RED: 0, povertySum: 0, leakageScore: 0 });
-    }
-    const row = m.get(key);
-    row.total += 1;
-    row[a.classification] += 1;
-    row.povertySum += a.poverty_index;
-    if (a.classification === 'RED') {
-      row.leakageScore += a.score * a.kwh_month * 0.01 + a.peak_kw * 50;
-    }
-  });
-  return Array.from(m.entries()).map(([name, v]) => {
-    const pairs = [
-      ['GREEN', v.GREEN],
-      ['YELLOW', v.YELLOW],
-      ['RED', v.RED],
-    ].sort((a, b) => b[1] - a[1]);
-    const dominant = pairs[0][1] === 0 ? 'YELLOW' : pairs[0][0];
-    return {
-      name,
-      total: v.total,
-      GREEN: v.GREEN,
-      YELLOW: v.YELLOW,
-      RED: v.RED,
-      poverty_index: Math.round((v.povertySum / v.total) * 1000) / 1000,
-      dominant,
-      leakageScore: v.leakageScore,
-    };
-  });
-}
-
-function computeKpis(accounts) {
-  const greens = accounts.filter((a) => a.classification === 'GREEN');
-  const reds = accounts.filter((a) => a.classification === 'RED');
-  const yellows = accounts.filter((a) => a.classification === 'YELLOW');
-
-  const subsidyManaged = Math.round(
-    greens.reduce(
-      (s, a) => s + a.kwh_month * 48 * (1 - 0.6) + Math.max(0, 180 - a.token_avg_ksh) * 6,
-      0,
-    ) * 12,
-  );
-
-  const leakageDetected = Math.round(
-    reds.reduce(
-      (s, a) =>
-        s
-        + a.kwh_month * 32 * (a.tariff - 1)
-        + a.token_avg_ksh * 8 * (a.tariff - 1)
-        + a.peak_kw * 420,
-      0,
-    ) * 12,
-  );
-
-  const revenueBalance = leakageDetected - subsidyManaged;
-
-  const genuinelyVulnerable = greens.filter((g) => g.poverty_index >= 0.35).length;
-  const efficiencyScore = greens.length
-    ? Math.min(
-      96,
-      Math.max(
-        41,
-        Math.round((genuinelyVulnerable / greens.length) * 100),
-      ),
-    )
-    : 0;
-
-  const countyAgg = aggregateByCounty(accounts);
-  const topLeakageCounties = [...countyAgg]
-    .sort((a, b) => b.leakageScore - a.leakageScore)
-    .slice(0, 5);
-
-  return {
-    total_accounts: accounts.length,
-    classification_counts: {
-      GREEN: greens.length,
-      YELLOW: yellows.length,
-      RED: reds.length,
-    },
-    subsidyManaged,
-    leakageDetected,
-    revenueBalance,
-    efficiencyScore,
-    countyAgg,
-    topLeakageCounties,
-    turkana_exceptions: accounts.filter((a) => a.flags?.includes('LUXURY_IN_POVERTY_ZONE')).length,
-    counties_covered: new Set(accounts.map((a) => a.county_base || a.county.split('(')[0].trim())).size,
-  };
-}
-
 export function SyntheticDataProvider({ children }) {
-  const accounts = useMemo(() => generateSyntheticAccounts(20260422), []);
-  const stats = useMemo(() => computeKpis(accounts), [accounts]);
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [weights, setWeights] = useState({
+    consumption_per_capita: 0.25,
+    payment_consistency: 0.22,
+    nsps_status: 0.18,
+    peak_demand_ratio: 0.15,
+    upgrade_history: 0.12,
+    active_accounts: 0.08,
+  });
+
+  const refresh = useCallback(async (signal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/v1/households', { signal });
+      if (!res.ok) {
+        throw new Error(`The household cohort could not be loaded (${res.status}).`);
+      }
+      const data = await res.json();
+      if (signal?.aborted) return;
+      const mapped = data.map((a) => ({
+        ...a,
+        account_hash: a.account_id_hash,
+        final_score: a.equity_score,
+        tariff: a.suggested_tariff_multiplier,
+        ward: `Ward ${((a.id || 0) % 5) + 1}`,
+        variable_scores: {
+          consumption_per_capita: a.score_consumption_per_capita,
+          payment_consistency: a.score_payment_consistency,
+          nsps_status: a.score_nsps_status,
+          peak_demand_ratio: a.score_peak_demand_ratio,
+          upgrade_history: a.score_upgrade_history,
+          active_accounts: a.score_active_accounts,
+        },
+      }));
+      setAccounts(mapped);
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      setError(err.message || 'The household cohort could not be loaded.');
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refresh(controller.signal);
+    return () => controller.abort();
+  }, [refresh]);
+
+  const recomputedAccounts = useMemo(() => {
+    return accounts.map((a) => {
+      const sub = a.variable_scores;
+      if (!sub) return a;
+
+      const raw =
+        sub.consumption_per_capita * weights.consumption_per_capita +
+        sub.payment_consistency * weights.payment_consistency +
+        sub.nsps_status * weights.nsps_status +
+        sub.peak_demand_ratio * weights.peak_demand_ratio +
+        sub.upgrade_history * weights.upgrade_history +
+        sub.active_accounts * weights.active_accounts;
+
+      const final_score = Math.round(Math.max(0, Math.min(100, raw)) * 10) / 10;
+
+      let classification = 'YELLOW';
+      let tariff = 1.0;
+      if (final_score <= 40) {
+        classification = 'GREEN';
+        tariff = 0.8;
+      } else if (final_score <= 70) {
+        classification = 'YELLOW';
+        tariff = 1.0;
+      } else {
+        classification = 'RED';
+        tariff = 1.25;
+      }
+
+      return {
+        ...a,
+        final_score,
+        classification,
+        tariff,
+      };
+    });
+  }, [accounts, weights]);
+
+  const stats = useMemo(() => computeKpis(recomputedAccounts), [recomputedAccounts]);
 
   const value = useMemo(
     () => ({
-      accounts,
+      accounts: recomputedAccounts,
+      rawAccounts: accounts,
       stats,
+      weights,
+      setWeights,
+      loading,
+      error,
+      refresh,
     }),
-    [accounts, stats],
+    [recomputedAccounts, accounts, stats, weights, loading, error, refresh],
   );
 
   return (
